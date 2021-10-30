@@ -12,12 +12,12 @@ Flash oscilloscope.ino to an arduino board. In the Oscilloscope gui settings sel
 
 You can connect any signal up to 5 volts to the analog pin A0. For signals over 5V a voltage divider is needed.
 
-For ATmega boards there is a PWM signal at pin B2(OC1B). To test the Oscilloscope app connect pin B2 to pin A0
+For ATmega boards it is defined a PWM signal at pin OC1B. To test the Oscilloscope app connect pin OC1B to pin A0
 Adjust PWM signal with PWM_FREQ and PWM_DUTY. Default is 100Hz, 50% duty.
 
-Pin B2 location:
-  - Uno, Leonardo: pin 10
-  - ATmega2560: pin 12
+Pin OC1B location:
+  - Uno, Leonardo: pin 10 (PB2)
+  - ATmega2560: pin 12 (PB6)
 
 To build the Oscilloscope app:
 - install qt
