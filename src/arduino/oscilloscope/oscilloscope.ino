@@ -12,14 +12,18 @@ void setup() {
     Serial.begin(1000000);
 
 #if defined(ARDUINO_ARCH_AVR)
-    /*  PWM signal is available at pin B2(OC1B). To test the Oscilloscope app connect pin B2 to pin A0
-        Adjust PWM signal with PWM_FREQ and PWM_DUTY
-        Pin B2:
-          Uno, Leonardo: pin 10
-          ATmega2560: pin 12
-        PWM 100Hz, 50% DUTY, PIN B2
+    /*  PWM signal is available at pin OC1B. To test the Oscilloscope app connect pin OC1B to pin A0
+        Adjust PWM signal with PWM_FREQ and PWM_DUTY. Default: PWM 100Hz, 50% DUTY
+        Pin OC1B:
+          Uno:        pin 10 (PB2)
+          Leonardo:   pin 10 (PB6)
+          ATmega2560: pin 12 (PB6)
     */
+#if defined(__AVR_ATmega2560__) || defined(__AVR_ATmega32U4__)
+    DDRB |= _BV(DDB6);
+#else
     DDRB |= _BV(DDB2);
+#endif
     TCCR1A = _BV(WGM11) | _BV(WGM10);
     TCCR1B = _BV(WGM13) | _BV(WGM12) | _BV(CS11); // scaler 8
     TCCR1A |= _BV(COM1B1);
