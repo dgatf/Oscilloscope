@@ -8,7 +8,9 @@ A simple oscilloscope application that reads the values at serial port generated
 <p align="center"><img src="./images/img2.png" width="300"><br>
   <i>Settings</i><br><br></p>
 
-Flash oscilloscpe.ino to an arduino board. In the Oscilloscope gui settings select the serial port with correct properties. By default 1000000bps, 8bits, no parity, 1 stop bit and no flow control and an interval of 100ms between analog readings. 
+Flash oscilloscope.ino to an arduino board. In the Oscilloscope gui settings select the serial port with correct properties. By default 1000000bps, 8bits, no parity, 1 stop bit and no flow control and an interval of 100us between analog readings. 
+
+You can connect any signal up to 5 volts to the analog pin A0. For signals over 5V a voltage divider is needed.
 
 For ATmega boards there is a PWM signal at pin B2(OC1B). To test the Oscilloscope app connect pin B2 to pin A0
 Adjust PWM signal with PWM_FREQ and PWM_DUTY. Default is 100Hz, 50% duty.
