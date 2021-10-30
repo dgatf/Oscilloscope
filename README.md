@@ -4,3 +4,21 @@ A simple oscilloscope application that reads the values at serial port generated
 
 <p align="center"><img src="./images/img1.png" width="600"><br>
   <i>Main window</i><br><br></p>
+
+<p align="center"><img src="./images/img2.png" width="300"><br>
+  <i>Settings</i><br><br></p>
+
+Flash oscilloscpe.ino to an arduino board. In the Oscilloscope gui settings select the serial port with correct properties. By default 1000000bps, 8bits, no paraty, 1 stop bot and no flow control and an interval of 100ms between analog readings. 
+
+For ATmega based boards there is a PWM signal at pin B2(OC1B). To test the Oscilloscope app connect pin B2 to pin A0
+Adjust PWM signal with PWM_FREQ and PWM_DUTY. Default is 100Hz, 50% duty.
+
+Pin B2 location:
+  - Uno, Leonardo: pin 10
+  - ATmega2560: pin 12
+
+To build the Oscilloscope app:
+- install qt
+- cd to src/qt folder
+- qmake
+- make
