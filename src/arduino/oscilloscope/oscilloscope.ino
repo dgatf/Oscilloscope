@@ -11,7 +11,7 @@ void setup() {
     pinMode(A0, INPUT);
     Serial.begin(1000000);
 
-#if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega328PB__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega32U4__)
+#if defined(ARDUINO_ARCH_AVR)
     /*  PWM signal is available at pin B2(OC1B). To test the Oscilloscope app connect pin B2 to pin A0
         Adjust PWM signal with PWM_FREQ and PWM_DUTY
         Pin B2:
