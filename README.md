@@ -16,9 +16,10 @@ For ATmega boards it is defined a PWM signal at pin OC1B. To test the Oscillosco
 Adjust PWM signal with PWM_FREQ and PWM_DUTY. Default is 100Hz, 50% duty.
 
 Pin OC1B location:
-  - Uno, Leonardo: pin 10 (PB2)
-  - ATmega2560: pin 12 (PB6)
-
+ - Uno:        pin 10 (PB2)
+ - Leonardo:   pin 10 (PB6)
+ - ATmega2560: pin 12 (PB6)
+ 
 To build the Oscilloscope app:
 - install qt
 - cd to src/qt folder
