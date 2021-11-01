@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>363</width>
-    <height>353</height>
+    <height>356</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -160,7 +160,7 @@
       <item>
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Interval (us)</string>
+         <string>Interval (μs)</string>
         </property>
        </widget>
       </item>
@@ -170,7 +170,7 @@
          <number>1000</number>
         </property>
         <property name="value">
-         <number>100</number>
+         <number>13</number>
         </property>
        </widget>
       </item>

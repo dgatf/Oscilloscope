@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>698</width>
-    <height>326</height>
+    <width>779</width>
+    <height>346</height>
    </rect>
   </property>
   <property name="font">
@@ -63,6 +63,12 @@ selection-background-color: rgb(192, 191, 188);</string>
          <widget class="QLabel" name="lbPic">
           <property name="enabled">
            <bool>true</bool>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
           </property>
           <property name="text">
            <string>TextLabel</string>
@@ -281,8 +287,18 @@ selection-background-color: rgb(192, 191, 188);</string>
           </item>
           <item>
            <widget class="QPushButton" name="btClose">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
             <property name="text">
              <string>Disconnect</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btExport">
+            <property name="text">
+             <string>Export...</string>
             </property>
            </widget>
           </item>
@@ -299,7 +315,7 @@ selection-background-color: rgb(192, 191, 188);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>698</width>
+     <width>779</width>
      <height>24</height>
     </rect>
    </property>

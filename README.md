@@ -8,7 +8,9 @@ A simple oscilloscope application that reads the values at serial port generated
 <p align="center"><img src="./images/img2.png" width="300"><br>
   <i>Settings</i><br><br></p>
 
-Flash oscilloscope.ino to an arduino board. In the Oscilloscope gui settings select the serial port with correct properties. By default 1000000bps, 8bits, no parity, 1 stop bit and no flow control and an interval of 100us between analog readings. 
+It is optimized for AVR ATmega MCUs with 13μs sampling resolution. For other boards the resolution is 200μs
+
+Flash _oscilloscope_. In the Oscilloscope app configure the serial port. By default 1000000bps, 8bits, no parity, 1 stop bit and no flow control. Interval is 13μs for AVR ATmega and 200μs for other MCUs
 
 You can connect any signal up to 5 volts to the analog pin A0. For signals over 5V a voltage divider is needed.
 
@@ -20,7 +22,9 @@ Pin OC1B location:
  - Leonardo:   pin 10 (PB6)
  - ATmega2560: pin 12 (PB6)
  
-To build the Oscilloscope app:
+Find binaries [here](https://github.com/dgatf/msrc/tree/master/oscilloscope/binaries)
+
+Or build from sources:
 - install qt
 - cd to src/qt folder
 - qmake

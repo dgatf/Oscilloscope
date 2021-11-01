@@ -6,6 +6,8 @@
 #include <QSerialPortInfo>
 #include <QDebug>
 #include <QPainter>
+#include <QFileDialog>
+#include <QLabel>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,6 +25,8 @@ public:
     ~MainWindow();
     void resizeEvent(QResizeEvent* event);
 
+    uint16_t interval; // us
+
 private:
     Ui::MainWindow *ui;
     QSerialPort *m_serial = nullptr;
@@ -30,10 +34,11 @@ private:
     QPainter *m_paint;
     SettingsDialog *m_ui_settings = nullptr;
     AboutDialog *m_ui_about = nullptr;
+    QLabel *m_statusLabel = nullptr;
 
     float vDiv = 1;
     float volt = 1 * 6;
-    uint16_t timeLenght = 100;
+    uint16_t timeLenght = 1 * 10;
     float trigger = 1;
     enum Edge { min, max };
     enum TriggerTypes { none, rising, falling };
@@ -41,6 +46,10 @@ private:
 
     uint8_t maxValue = 0;
     uint8_t minValue = 0;
+    uint16_t rawFreq;
+    uint16_t rawDuty;
+    bool pendingExport = false;
+    QString fileName;
 
     void drawBackground();
 
@@ -55,6 +64,7 @@ private slots:
     void updateHdiv();
     void settings();
     void about();
+    void exportData();
 };
 
 #endif // MAINWINDOW_H
