@@ -10,8 +10,9 @@ MainWindow::MainWindow(QWidget* parent)
       m_pixmap(new QPixmap(500, 400)),
       m_paint(new QPainter(m_pixmap)),
       m_ui_settings(new SettingsDialog()),
-      m_ui_about(new AboutDialog())
-{    
+      m_ui_about(new AboutDialog()),
+      m_statusLabel(new QLabel())
+{
     ui->setupUi(this);
     connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(exitApp()));
     connect(ui->actionSettings, SIGNAL(triggered()), this, SLOT(settings()));
@@ -33,23 +34,148 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->rbH5, SIGNAL(clicked()), this, SLOT(updateHdiv()));
     //connect(ui->rbH1, SIGNAL(clicked()), this, SLOT(updateHdiv()));
     connect(ui->rbH1, &QRadioButton::clicked, this, &MainWindow::updateHdiv);
+    connect(ui->btExport, &QPushButton::clicked, this, &MainWindow::exportData);
     ui->rbV10->setChecked(true);
     ui->rbH10->setChecked(true);
     ui->sbTrigger->setValue(trigger);
-    ui->lbPic->setMinimumSize(300, 225);
+    ui->btClose->setEnabled(false);
+    ui->lbPic->setMinimumSize(400, 250);
     drawBackground();
     ui->lbPic->setPixmap(*m_pixmap);
-    qInfo() << "INIT";
+    statusBar()->addWidget(m_statusLabel);
+    m_statusLabel->setText("Disconnected");
 }
 
-void MainWindow::resizeEvent(QResizeEvent* event)
+MainWindow::~MainWindow()
 {
-    QMainWindow::resizeEvent(event);
-    m_paint->end();
-    *m_pixmap = m_pixmap->scaled(ui->lbPic->width(), ui->lbPic->height(), Qt::IgnoreAspectRatio);
-    m_paint->begin(m_pixmap);
-    drawBackground();
-    ui->lbPic->setPixmap(*m_pixmap);
+    delete ui;
+}
+
+void MainWindow::readData()
+{
+    static bool isTriggered = true;
+    static float oldxPos = 0;
+    static uint16_t oldyPos = m_pixmap->height();
+    static uint8_t prevValue = 0;
+    static uint8_t deltaRising = 0;
+    static uint8_t deltaFalling = 0;
+    static uint16_t tsRising = 0;
+    static uint16_t tsFalling = 0;
+    static uint16_t cont = 0;
+    uint16_t interval = 13;
+    QByteArray data = m_serial->readAll();
+    float xDelta = m_pixmap->width() * interval / 1000.0 / timeLenght;  // float needed in case delta is less than one
+
+    for (uint16_t i = 0; i < data.size(); i++)
+    {
+        // Find V limits
+        if ((uint8_t)data[i] > maxValue)
+        {
+            maxValue = data[i];
+        }
+
+        if ((uint8_t)data[i] < minValue)
+        {
+            minValue = data[i];
+        }
+
+        // Find triggers
+        if ((uint8_t)data[i] - prevValue > 0)   // rising
+        {
+            deltaRising += (uint8_t)data[i] - prevValue;
+            deltaFalling = 0;
+        }
+
+        if ((uint8_t)data[i] - prevValue < 0)   // falling
+        {
+            deltaFalling += prevValue - (uint8_t)data[i];
+            deltaRising = 0;
+        }
+
+        prevValue = data[i];
+
+        if (((float)deltaRising) / 0xFF * 5 > trigger)
+        {
+            if ((triggerType == rising  || triggerType == none) && cont - tsRising > 2)
+            {
+                isTriggered = true;
+                rawFreq = cont - tsRising;
+                rawDuty = cont - tsFalling;
+            }
+
+            deltaRising = 0;
+            deltaFalling = 0;
+            tsRising = cont;
+        }
+
+        if (((float)deltaFalling) / 0xFF * 5 > trigger)
+        {
+            if (triggerType == falling  && cont - tsFalling > 2)
+            {
+                isTriggered = true;
+                rawFreq = cont - tsFalling;
+                rawDuty = cont - tsRising;
+            }
+
+            deltaRising = 0;
+            deltaFalling = 0;
+            tsFalling = cont;
+        }
+
+        cont++;
+
+        if (isTriggered == true || triggerType == none)  // draw new value
+        {
+            float newxPos = oldxPos + xDelta;
+            uint16_t newyPos = m_pixmap->height() - (uint8_t)data[i] * m_pixmap->height() / 0xFF;
+            newyPos = newyPos * 5 / volt + m_pixmap->height() * (6 - 5 / vDiv) / 6 / 2;
+
+            if (newyPos < 0)
+            {
+                newyPos = 0;
+            }
+
+            if (newxPos > m_pixmap->width())
+            {
+                if (triggerType != none)
+                {
+                    isTriggered = false;
+                    deltaRising = 0;
+                    deltaFalling = 0;
+                }
+
+                ui->lbPic->setPixmap(*m_pixmap);
+
+                if (pendingExport)
+                {
+                    if (!m_pixmap->toImage().save(fileName))
+                    {
+                        statusBar()->showMessage("Export error", 3000);
+                    }
+                    else
+                    {
+                        statusBar()->showMessage("Saved", 3000);
+                    }
+
+                    pendingExport = false;
+                }
+
+                drawBackground();
+                newxPos -= m_pixmap->width();
+                maxValue = 0;
+                minValue = 0;
+            }
+            else
+            {
+                float timePos = (float)ui->slTime->value() / (ui->slTime->maximum() - ui->slTime->minimum()) * 0.25;
+                float voltPos = (float)ui->slVolt->value() / (ui->slVolt->maximum() - ui->slVolt->minimum()) * 0.50;
+                m_paint->drawLine(newxPos + m_pixmap->width() * timePos, newyPos + m_pixmap->height() * voltPos, oldxPos + m_pixmap->width() * timePos, oldyPos + m_pixmap->height() * voltPos);
+            }
+
+            oldxPos = newxPos;
+            oldyPos = newyPos;
+        }
+    }
 }
 
 void MainWindow::drawBackground()
@@ -58,12 +184,26 @@ void MainWindow::drawBackground()
     uint16_t width = m_pixmap->width();
     m_paint->fillRect(0, 0, width, height, QColor(255, 255, 255, 255));
     QFont font = m_paint->font();
-    font.setPixelSize(15);
+    font.setPixelSize(14);
     font.setBold(true);
     m_paint->setFont(font);
     m_paint->setPen(QColor(0, 0, 100, 255));
-    m_paint->drawText(5, height - 5, "V/div=" + QString::number(vDiv) + "    ms/div=" + QString::number(timeLenght / 10) + "    Vmax=" + QString::number((float)maxValue / 0xFF * 5, 'f',
-                      3) + "    Vmin=" + QString::number((float)minValue / 0xFF * 5));
+    m_paint->drawText(5, height - 5, QString::number(vDiv * 1000) + "mV/d    " + QString::number((float)timeLenght / 10 * 1000) + "μs/d    Vmax=" + QString::number((float)maxValue / 0xFF * 5, 'f',
+                      3) + "    Vmin=" + QString::number((float)minValue / 0xFF * 5, 'f', 3));
+    QString freq, duty;
+
+    if (rawFreq == 0)
+    {
+        freq = "0";
+        duty = "0";
+    }
+    else
+    {
+        freq = QString::number((float)1000000 / (rawFreq * interval), 'f', 0);
+        duty = QString::number(100 * (float)rawDuty / rawFreq, 'f', 0);
+    }
+
+    m_paint->drawText(5, 20, freq + "Hz   " + duty + "%");
     // 0 volts line
     m_paint->setPen(QColor(0, 100, 0, 50));
     float voltPos = (float)ui->slVolt->value() / (ui->slVolt->maximum() - ui->slVolt->minimum()) * 0.50;
@@ -85,27 +225,35 @@ void MainWindow::drawBackground()
     m_paint->setPen(QColor(0, 0, 0, 255));
 }
 
-MainWindow::~MainWindow()
+void MainWindow::resizeEvent(QResizeEvent* event)
 {
-    delete ui;
+    QMainWindow::resizeEvent(event);
+    m_paint->end();
+    *m_pixmap = m_pixmap->scaled(ui->lbPic->width(), ui->lbPic->height(), Qt::IgnoreAspectRatio);
+    m_paint->begin(m_pixmap);
+    drawBackground();
+    ui->lbPic->setPixmap(*m_pixmap);
 }
 
 void MainWindow::openSerialPort()
-{    
+{
     m_serial->setPortName(m_ui_settings->m_currentSettings.name);
     m_serial->setBaudRate(m_ui_settings->m_currentSettings.baudRate);
     m_serial->setDataBits(m_ui_settings->m_currentSettings.dataBits);
     m_serial->setParity(m_ui_settings->m_currentSettings.parity);
     m_serial->setStopBits(m_ui_settings->m_currentSettings.stopBits);
     m_serial->setFlowControl(m_ui_settings->m_currentSettings.flowControl);
+    interval = m_ui_settings->m_currentSettings.interval;
 
     if (m_serial->open(QIODevice::ReadOnly))
     {
-        qInfo("Connected");
+        m_statusLabel->setText("Connected   (" + m_serial->portName() + "   " + QString::number(m_serial->baudRate()) + "bps   " + QString::number(interval) + "μs)");
+        ui->btOpen->setEnabled(false);
+        ui->btClose->setEnabled(true);
     }
     else
     {
-        qInfo("Connection error");
+        statusBar()->showMessage("Connection error", 3000);
     }
 }
 
@@ -116,97 +264,9 @@ void MainWindow::closeSerialPort()
         m_serial->close();
     }
 
-    qInfo("Disconnected");
-}
-
-void MainWindow::readData()
-{
-    static bool isTriggered = true;
-    static float oldxPos = 0;
-    static uint16_t oldyPos = m_pixmap->height();
-    static uint8_t oldValue = 0;
-    static uint8_t deltaRising = 0;
-    static uint8_t deltaFalling = 0;
-    uint16_t us = 100;
-    QByteArray data = m_serial->readAll();
-    float xDelta = m_pixmap->width() * us / 1000.0 / timeLenght;  // float needed in case delta is less than one
-
-    for (uint16_t i = 0; i < data.size(); i++)
-    {
-        if ((uint8_t)data[i] > maxValue)
-        {
-            maxValue = data[i];
-        }
-
-        if ((uint8_t)data[i] < minValue)
-        {
-            minValue = data[i];
-        }
-
-        if (isTriggered == false && triggerType != none)  // look for the trigger
-        {
-            if ((uint8_t)data[i] - oldValue > 0)   // rising
-            {
-                deltaRising += (uint8_t)data[i] - oldValue;
-                deltaFalling = 0;
-            }
-
-            if ((uint8_t)data[i] - oldValue < 0)   // falling
-            {
-                deltaFalling += oldValue - (uint8_t)data[i];
-                deltaRising = 0;
-            }
-            if (triggerType == rising && ((float)deltaRising) / 0xFF * 5 > trigger)
-            {
-                isTriggered = true;
-            }
-            if (triggerType == falling && ((float)deltaFalling) / 0xFF * 5 > trigger)
-            {
-                isTriggered = true;
-            }
-
-            oldValue = data[i];
-        }
-
-        if (isTriggered == true || triggerType == none)  // draw new value
-        {
-            float newxPos = oldxPos + xDelta;
-            uint16_t newyPos = m_pixmap->height() - (uint8_t)data[i] * m_pixmap->height() / 0xFF;
-            newyPos = newyPos * 5 / volt + m_pixmap->height() * (6 - 5 / vDiv) / 6 / 2;
-            //newxPos += m_pixmap->width() * ui->slTime->value() / 100;
-
-            if (newyPos < 0)
-            {
-                newyPos = 0;
-            }
-
-            if (newxPos > m_pixmap->width())
-            {
-                if (triggerType != none)
-                {
-                    isTriggered = false;
-                    oldValue = data[i];
-                    deltaRising = 0;
-                    deltaFalling = 0;
-                }
-
-                ui->lbPic->setPixmap(*m_pixmap);
-                drawBackground();
-                newxPos -= m_pixmap->width();
-                maxValue = 0;
-                minValue = 0;
-            }
-            else
-            {
-                float timePos = (float)ui->slTime->value() / (ui->slTime->maximum() - ui->slTime->minimum()) * 0.25;
-                float voltPos = (float)ui->slVolt->value() / (ui->slVolt->maximum() - ui->slVolt->minimum()) * 0.50;
-                m_paint->drawLine(newxPos + m_pixmap->width() * timePos, newyPos + m_pixmap->height() * voltPos, oldxPos + m_pixmap->width() * timePos, oldyPos + m_pixmap->height() * voltPos);
-            }
-
-            oldxPos = newxPos;
-            oldyPos = newyPos;
-        }
-    }
+    statusBar()->showMessage("Disconnected");
+    ui->btOpen->setEnabled(true);
+    ui->btClose->setEnabled(false);
 }
 
 void MainWindow::updateTrigger()
@@ -253,7 +313,6 @@ void MainWindow::updateVdiv()
     volt = vDiv * 6;
     drawBackground();
     ui->lbPic->setPixmap(*m_pixmap);
-
 }
 
 void MainWindow::updateHdiv()
@@ -291,6 +350,36 @@ void MainWindow::settings()
 void MainWindow::about()
 {
     m_ui_about->show();
+}
+
+void MainWindow::exportData()
+{
+    fileName = QFileDialog::getSaveFileName(this,
+                                            tr("Save signal image"), "",
+                                            tr("Bitmap image (*.bmp);;All Files (*)"));
+
+    if (fileName.isEmpty())
+    {
+        return;
+    }
+    else
+    {
+        if (m_serial->isOpen())
+        {
+            pendingExport = true;
+        }
+        else
+        {
+            if (!m_pixmap->toImage().save(fileName))
+            {
+                statusBar()->showMessage("Export error", 3000);
+            }
+            else
+            {
+                statusBar()->showMessage("Saved", 3000);
+            }
+        }
+    }
 }
 
 void MainWindow::exitApp()

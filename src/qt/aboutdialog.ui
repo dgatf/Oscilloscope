@@ -28,8 +28,11 @@
     </font>
    </property>
    <property name="text">
-    <string>Este programa viene SIN NINGUNA GARANTÍA.
-Consulte la Licencia Pública General de GNU, versión 3 o posterior para obtener más detalles.</string>
+    <string>This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>

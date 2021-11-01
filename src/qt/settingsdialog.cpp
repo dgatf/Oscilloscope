@@ -16,16 +16,13 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 {
     m_ui->setupUi(this);
     m_ui->baudRateBox->setInsertPolicy(QComboBox::NoInsert);
-    connect(m_ui->applyButton, &QPushButton::clicked,
-            this, &SettingsDialog::apply);
-    connect(m_ui->serialPortInfoListBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &SettingsDialog::showPortInfo);
-    connect(m_ui->baudRateBox,  QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &SettingsDialog::checkCustomBaudRatePolicy);
-    connect(m_ui->serialPortInfoListBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &SettingsDialog::checkCustomDevicePathPolicy);
+    connect(m_ui->applyButton, &QPushButton::clicked, this, &SettingsDialog::apply);
+    connect(m_ui->serialPortInfoListBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsDialog::showPortInfo);
+    connect(m_ui->baudRateBox,  QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsDialog::checkCustomBaudRatePolicy);
+    connect(m_ui->serialPortInfoListBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsDialog::checkCustomDevicePathPolicy);
     fillPortsParameters();
     fillPortsInfo();
+
     m_ui->serialPortInfoListBox->setCurrentText(m_settings->value("serialport").toString());
     m_ui->baudRateBox->setCurrentText(m_settings->value("baudrate").toString());
     m_ui->dataBitsBox->setCurrentText(m_settings->value("databits").toString());
@@ -33,6 +30,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
     m_ui->stopBitsBox->setCurrentText(m_settings->value("stopbits").toString());
     m_ui->flowControlBox->setCurrentText(m_settings->value("flowcontrol").toString());
     m_ui->sbInterval->setValue(m_settings->value("interval").toInt());
+    updateSettings();
 }
 
 SettingsDialog::~SettingsDialog()
@@ -100,6 +98,7 @@ void SettingsDialog::fillPortsParameters()
     m_ui->baudRateBox->addItem(QStringLiteral("230400"), 230400);
     m_ui->baudRateBox->addItem(QStringLiteral("500000"), 500000);
     m_ui->baudRateBox->addItem(QStringLiteral("1000000"), 1000000);
+    m_ui->baudRateBox->setCurrentIndex(6);
     m_ui->baudRateBox->addItem(tr("Custom"));
     m_ui->dataBitsBox->addItem(QStringLiteral("5"), QSerialPort::Data5);
     m_ui->dataBitsBox->addItem(QStringLiteral("6"), QSerialPort::Data6);
@@ -150,7 +149,6 @@ void SettingsDialog::fillPortsInfo()
 
 void SettingsDialog::updateSettings()
 {
-    QSettings settings;
     m_currentSettings.name = m_ui->serialPortInfoListBox->currentText();
     m_settings->setValue("serialport", m_ui->serialPortInfoListBox->currentText());
 
