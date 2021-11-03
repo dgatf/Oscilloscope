@@ -9,18 +9,15 @@ CONFIG += c++11 console
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    aboutdialog.cpp \
     main.cpp \
     mainwindow.cpp \
     settingsdialog.cpp
 
 HEADERS += \
-    aboutdialog.h \
     mainwindow.h \
     settingsdialog.h
 
 FORMS += \
-    aboutdialog.ui \
     mainwindow.ui \
     settingsdialog.ui
 
@@ -33,4 +30,5 @@ RESOURCES += \
     resources.qrc
 
 DISTFILES += \
-    ../../README.md
+    ../../README.md \
+    connect.png
