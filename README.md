@@ -15,7 +15,7 @@ Flash _oscilloscope_. In the Oscilloscope app configure the serial port. By defa
 You can connect any signal up to 5 volts to the analog pin A0. For signals over 5V a voltage divider is needed.
 
 For ATmega boards it is defined a PWM signal at pin OC1B. To test the Oscilloscope app connect pin OC1B to pin A0
-Adjust PWM signal with PWM_FREQ and PWM_DUTY. Default is 100Hz, 50% duty.
+Adjust PWM signal with PWM_FREQ and PWM_DUTY. Default is 1000Hz, 50% duty.
 
 Pin OC1B location:
  - Uno:        pin 10 (PB2)

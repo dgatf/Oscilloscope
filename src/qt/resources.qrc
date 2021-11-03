@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>oscilloscope.bmp</file>
+        <file>connect.png</file>
+        <file>disconnect.png</file>
     </qresource>
 </RCC>
