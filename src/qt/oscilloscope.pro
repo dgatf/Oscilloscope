@@ -21,6 +21,12 @@ FORMS += \
     mainwindow.ui \
     settingsdialog.ui
 
+CONFIG(win) {
+    TARGET = oscilloscope_win
+} else {
+    TARGET = oscilloscope_linux
+}
+
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
@@ -29,6 +35,3 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 RESOURCES += \
     resources.qrc
 
-DISTFILES += \
-    ../../README.md \
-    connect.png

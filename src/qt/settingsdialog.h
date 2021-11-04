@@ -20,7 +20,6 @@
 #include <QSerialPort>
 #include <QSettings>
 #include <QDebug>
-#include <QIntValidator>
 #include <QLineEdit>
 #include <QSerialPortInfo>
 #include <QColorDialog>

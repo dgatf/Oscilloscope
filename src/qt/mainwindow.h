@@ -18,7 +18,6 @@
 
 #include <QMainWindow>
 #include <QSerialPort>
-#include <QSerialPortInfo>
 #include <QDebug>
 #include <QPainter>
 #include <QFileDialog>
@@ -61,12 +60,12 @@ private:
     float trigger = 1;
     enum Edge { min, max };
     enum TriggerType { none, rising, falling };
-    TriggerType triggerType = none;
+    TriggerType triggerType = rising;
 
     uint8_t maxValue = 0;
     uint8_t minValue = 0;
-    uint16_t rawFreq;
-    uint16_t rawDuty;
+    uint16_t rawFreq = 0;
+    uint16_t rawDuty = 0;
     bool pendingExport = false;
     QString fileName;
 

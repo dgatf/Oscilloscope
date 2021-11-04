@@ -3,5 +3,7 @@
         <file>oscilloscope.bmp</file>
         <file>connect.png</file>
         <file>disconnect.png</file>
+        <file>save.png</file>
+        <file>settings.png</file>
     </qresource>
 </RCC>
