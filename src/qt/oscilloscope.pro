@@ -21,9 +21,11 @@ FORMS += \
     mainwindow.ui \
     settingsdialog.ui
 
-CONFIG(win) {
+win32 {
     TARGET = oscilloscope_win
-} else {
+    RC_ICONS = oscilloscope.ico
+}
+unix {
     TARGET = oscilloscope_linux
 }
 
@@ -34,4 +36,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
     resources.qrc
+
 
