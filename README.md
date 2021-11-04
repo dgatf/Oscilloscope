@@ -10,7 +10,7 @@ A simple oscilloscope application that reads the values at serial port generated
 
 It is optimized for AVR ATmega MCUs with 13μs sampling resolution. For other boards the resolution is 200μs
 
-Flash _oscilloscope_. In the Oscilloscope app configure the serial port. By default 1000000bps, 8bits, no parity, 1 stop bit and no flow control. Interval is 13μs for AVR ATmega and 200μs for other MCUs
+Flash _oscilloscope_. In the Oscilloscope app configure the serial port. By default 1000000bps, 8bits and no parity. Interval is 13μs for AVR ATmega and 200μs for other MCUs
 
 You can connect any signal up to 5 volts to the analog pin A0. For signals over 5V a voltage divider is needed.
 

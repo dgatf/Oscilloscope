@@ -21,7 +21,7 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow),
       m_serial(new QSerialPort(this)),
-      m_pixmap(new QPixmap(520, 250)),
+      m_pixmap(new QPixmap(520, 230)),
       m_paint(new QPainter(m_pixmap)),
       m_ui_settings(new SettingsDialog()),
       m_statusLabel(new QLabel())

@@ -37,14 +37,14 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
     connect(m_ui->btText, &QPushButton::clicked, this, [this] {color(Element::text);});
     fillPortsParameters();
     fillPortsInfo();
-    m_ui->lbBackground->setStyleSheet("QLabel { background-color : #000000;}");
-    m_ui->lbGrid->setStyleSheet("QLabel { background-color : #33d17a;}");
-    m_ui->lbSignal->setStyleSheet("QLabel { background-color : #33d17a;}");
-    m_ui->lbText->setStyleSheet("QLabel { background-color : #c061cb;}");
     backgroundcolor = "#000000";
-    gridcolor = "#33d17a";
+    gridcolor = "#77767b";
     signalcolor = "#33d17a";
-    textcolor = "#9141ac";
+    textcolor = "#f9f06b";
+    m_ui->lbBackground->setStyleSheet("QLabel { background-color : " + backgroundcolor + ";}");
+    m_ui->lbGrid->setStyleSheet("QLabel { background-color : " + gridcolor + ";}");
+    m_ui->lbSignal->setStyleSheet("QLabel { background-color : " + signalcolor + ";}");
+    m_ui->lbText->setStyleSheet("QLabel { background-color : " + textcolor + ";}");
 
     if (m_settings->value("serialport").isValid()) {
         m_ui->serialPortInfoListBox->setCurrentText(m_settings->value("serialport").toString());
@@ -66,23 +66,23 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
         m_ui->sbInterval->setValue(m_settings->value("interval").toInt());
     }
 
-    backgroundcolor = m_settings->value("backgroundcolor").toString();
-    gridcolor = m_settings->value("gridcolor").toString();
-    signalcolor = m_settings->value("signalcolor").toString();
-    textcolor = m_settings->value("textcolor").toString();
     if (m_settings->value("backgroundcolor").isValid()) {
+        backgroundcolor = m_settings->value("backgroundcolor").toString();
         m_ui->lbBackground->setStyleSheet("QLabel { background-color : " + backgroundcolor + ";}");
     }
 
     if (m_settings->value("gridcolor").isValid()) {
+        gridcolor = m_settings->value("gridcolor").toString();
         m_ui->lbGrid->setStyleSheet("QLabel { background-color : " + gridcolor + ";}");
     }
 
     if (m_settings->value("signalcolor").isValid()) {
+        signalcolor = m_settings->value("signalcolor").toString();
         m_ui->lbSignal->setStyleSheet("QLabel { background-color : " + signalcolor + ";}");
     }
 
     if (m_settings->value("textcolor").isValid()) {
+        textcolor = m_settings->value("textcolor").toString();
         m_ui->lbText->setStyleSheet("QLabel { background-color : " + textcolor + ";}");
     }
 
@@ -225,7 +225,6 @@ void SettingsDialog::color(Element element)
 {
     QColor color = QColorDialog::getColor(Qt::yellow, this);
 
-    qInfo() << color.name();
     if (color.isValid()) {
         if (element == Element::background) {
             backgroundcolor = color.name();
