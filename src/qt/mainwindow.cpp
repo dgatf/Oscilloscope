@@ -21,16 +21,14 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow),
       m_serial(new QSerialPort(this)),
-      m_pixmap(new QPixmap(500, 400)),
+      m_pixmap(new QPixmap(520, 250)),
       m_paint(new QPainter(m_pixmap)),
       m_ui_settings(new SettingsDialog()),
       m_statusLabel(new QLabel())
 {
     ui->setupUi(this);
 
-    ui->lbPic->setMinimumSize(1, 1);
-    //ui->lbPic->adjustSize();
-    drawBackground();
+    ui->lbPic->setMinimumSize(50, 50);
     ui->lbPic->setPixmap(*m_pixmap);
     statusBar()->addWidget(m_statusLabel);
     m_statusLabel->setText("Disconnected");
@@ -52,7 +50,7 @@ MainWindow::MainWindow(QWidget* parent)
     ui->cbHdiv->addItem("100us/d");
     ui->cbHdiv->setItemData(0, 10000);
     ui->cbHdiv->setItemData(1, 5000);
-    ui->cbHdiv->setItemData(2, 100);
+    ui->cbHdiv->setItemData(2, 1000);
     ui->cbHdiv->setItemData(3, 500);
     ui->cbHdiv->setItemData(4, 100);
     ui->cbHdiv->setCurrentIndex(2);
@@ -64,21 +62,20 @@ MainWindow::MainWindow(QWidget* parent)
 
     QMenu *menu = menuBar()->addMenu(tr("&Menu"));
 
-    const QIcon connectIcon = QIcon::fromTheme("connect", QIcon("connect.png"));
+    const QIcon connectIcon = QIcon(":/connect.png");
     connectAct = new QAction(connectIcon, tr("&Connect"), this);
     menu->addAction(connectAct);
 
-
-    const QIcon disconnectIcon = QIcon::fromTheme("disconnect", QIcon("disconnect.png"));
+    const QIcon disconnectIcon = QIcon(":/disconnect.png");
     disconnectAct = new QAction(disconnectIcon, tr("&Disconnect"), this);
     menu->addAction(disconnectAct);
     menu->addSeparator();
 
-    const QIcon exportIcon = QIcon::fromTheme("export", QIcon("save.png"));
+    const QIcon exportIcon = QIcon(":/save.png");
     QAction *exportAct = new QAction(exportIcon, tr("&Export..."), this);
     menu->addAction(exportAct);
 
-    const QIcon settingsIcon = QIcon::fromTheme("settings", QIcon("settings.png"));
+    const QIcon settingsIcon = QIcon(":/settings.png");
     QAction *settingsAct = new QAction(settingsIcon, tr("&Settings..."), this);
     menu->addAction(settingsAct);
     menu->addSeparator();
@@ -86,7 +83,7 @@ MainWindow::MainWindow(QWidget* parent)
     QAction *aboutAct = new QAction(tr("&About"), this);
     menu->addAction(aboutAct);
 
-    const QIcon exitIcon = QIcon::fromTheme("exit", QIcon("application-exit.png"));
+    const QIcon exitIcon = QIcon(":/application-exit.png");
     QAction *exitAct = new QAction(exitIcon, tr("&Exit"), this);
     menu->addAction(exitAct);
 
@@ -100,7 +97,9 @@ MainWindow::MainWindow(QWidget* parent)
     toolBar->addSeparator();
     toolBar->addAction(exitAct);
 #endif
+
     disconnectAct->setEnabled(false);
+
 
     connect(m_serial, &QSerialPort::readyRead, this, &MainWindow::readData);
     connect(connectAct, &QAction::triggered, this, &MainWindow::openSerialPort);
@@ -109,13 +108,15 @@ MainWindow::MainWindow(QWidget* parent)
     connect(exportAct, &QAction::triggered, this, &MainWindow::exportData);
     connect(aboutAct, &QAction::triggered, this, &MainWindow::about);
     connect(exitAct, &QAction::triggered, this, &MainWindow::exitApp);
-    connect(ui->cbHdiv, &QComboBox::currentIndexChanged, this, &MainWindow::updateHdiv);
-    connect(ui->cbVdiv, &QComboBox::currentIndexChanged, this, &MainWindow::updateVdiv);
-    connect(ui->cbTriggerType, &QComboBox::currentIndexChanged, this, &MainWindow::updateTriggerType);
-    connect(ui->sbTriggerValue, &QDoubleSpinBox::valueChanged, this, &MainWindow::updateTrigger);
+
+    connect(ui->cbHdiv, &QComboBox::currentTextChanged, this, &MainWindow::updateHdiv);
+    connect(ui->cbVdiv, &QComboBox::currentTextChanged, this, &MainWindow::updateVdiv);
+    connect(ui->cbTriggerType, &QComboBox::currentTextChanged, this, &MainWindow::updateTriggerType);
+    connect(ui->sbTriggerValue, &QDoubleSpinBox::textChanged, this, &MainWindow::updateTrigger);
     connect(m_ui_settings, &SettingsDialog::accepted, this, &MainWindow::refresh);
 
-    qInfo() << QString::number(ui->lbPic->height()) + " " + QString::number(ui->lbPic->width());
+    ui->lbPic->adjustSize();
+    drawBackground();
 }
 
 MainWindow::~MainWindow()
@@ -242,7 +243,6 @@ void MainWindow::drawBackground()
     float voltPos = (float)ui->slVolt->value() / (ui->slVolt->maximum() - ui->slVolt->minimum());
     uint16_t yPos = m_pixmap->height() * (5 / volt + (6 - 5 / vDiv) / 6 / 2);
     m_paint->drawLine(0, yPos + m_pixmap->height() * voltPos, m_pixmap->width(), yPos + m_pixmap->height() * voltPos);
-    //m_paint->setPen(QColor(0, 0, 0, 123));
     m_paint->setPen(QColor(m_ui_settings->m_currentSettings.gridcolor));
 
     for (uint8_t i = 0; i < 6; i++) {   // horizontal lines
@@ -257,7 +257,6 @@ void MainWindow::drawBackground()
     font.setPixelSize(14);
     //font.setBold(true);
     m_paint->setFont(font);
-    //m_paint->setPen(QColor(0, 0, 100, 255));
     m_paint->setPen(QColor(m_ui_settings->m_currentSettings.textcolor));
     m_paint->drawText(5, height - 5, QString::number(vDiv * 1000) + "mV/d    " + QString::number((float)timeLenght / 10 * 1000) + "μs/d    Vmax=" + QString::number((float)maxValue / 0xFF * 5, 'f',
                       3) + "    Vmin=" + QString::number((float)minValue / 0xFF * 5, 'f', 3));
