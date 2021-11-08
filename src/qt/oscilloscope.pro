@@ -34,7 +34,18 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
+ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
+
 RESOURCES += \
     resources.qrc
 
-
+DISTFILES += \
+    ../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/AndroidManifest.xml \
+    ../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/build.gradle \
+    ../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/gradle.properties \
+    ../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/gradle/wrapper/gradle-wrapper.jar \
+    ../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/gradle/wrapper/gradle-wrapper.properties \
+    ../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/gradlew \
+    ../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/gradlew.bat \
+    ../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/res/values/libs.xml \
+    ../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/src/org/qtproject/qt/UsbSerialInterface.java

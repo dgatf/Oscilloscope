@@ -16,19 +16,15 @@
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
 
-static const char blankString[] = QT_TRANSLATE_NOOP("SettingsDialog", "N/A");
-
 SettingsDialog::SettingsDialog(QWidget* parent) :
-    QDialog(parent),
-    m_settings(new QSettings("Oscilloscope", "DGeA Soft")),
-    m_ui(new Ui::SettingsDialog),
-    m_intValidator(new QIntValidator(0, 4000000, this))
-
+    QDialog(parent)
+    , m_settings(new QSettings("Oscilloscope", "DGeA Soft"))
+    , m_ui(new Ui::SettingsDialog)
+    , m_intValidator(new QIntValidator(0, 4000000, this))
 {
     m_ui->setupUi(this);
     m_ui->baudRateBox->setInsertPolicy(QComboBox::NoInsert);
     connect(m_ui->applyButton, &QPushButton::clicked, this, &SettingsDialog::apply);
-    connect(m_ui->serialPortInfoListBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsDialog::showPortInfo);
     connect(m_ui->baudRateBox,  QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsDialog::checkCustomBaudRatePolicy);
     connect(m_ui->serialPortInfoListBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SettingsDialog::checkCustomDevicePathPolicy);
     connect(m_ui->btBackground, &QPushButton::clicked, this, [this] {color(Element::background);});
@@ -36,7 +32,9 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
     connect(m_ui->btSignal, &QPushButton::clicked, this, [this] {color(Element::signal);});
     connect(m_ui->btText, &QPushButton::clicked, this, [this] {color(Element::text);});
     fillPortsParameters();
-    fillPortsInfo();
+#ifndef Q_OS_ANDROID
+    fillPortsInfo();  
+#endif
     backgroundcolor = "#000000";
     gridcolor = "#77767b";
     signalcolor = "#33d17a";
@@ -45,47 +43,37 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
     m_ui->lbGrid->setStyleSheet("QLabel { background-color : " + gridcolor + ";}");
     m_ui->lbSignal->setStyleSheet("QLabel { background-color : " + signalcolor + ";}");
     m_ui->lbText->setStyleSheet("QLabel { background-color : " + textcolor + ";}");
-
     if (m_settings->value("serialport").isValid()) {
         m_ui->serialPortInfoListBox->setCurrentText(m_settings->value("serialport").toString());
     }
-
     if (m_settings->value("baudrate").isValid()) {
         m_ui->baudRateBox->setCurrentText(m_settings->value("baudrate").toString());
     }
-
     if (m_settings->value("databits").isValid()) {
         m_ui->dataBitsBox->setCurrentText(m_settings->value("databits").toString());
     }
-
     if (m_settings->value("parity").isValid()) {
         m_ui->parityBox->setCurrentText(m_settings->value("parity").toString());
     }
-
     if (m_settings->value("interval").isValid()) {
         m_ui->sbInterval->setValue(m_settings->value("interval").toInt());
     }
-
     if (m_settings->value("backgroundcolor").isValid()) {
         backgroundcolor = m_settings->value("backgroundcolor").toString();
         m_ui->lbBackground->setStyleSheet("QLabel { background-color : " + backgroundcolor + ";}");
     }
-
     if (m_settings->value("gridcolor").isValid()) {
         gridcolor = m_settings->value("gridcolor").toString();
         m_ui->lbGrid->setStyleSheet("QLabel { background-color : " + gridcolor + ";}");
     }
-
     if (m_settings->value("signalcolor").isValid()) {
         signalcolor = m_settings->value("signalcolor").toString();
         m_ui->lbSignal->setStyleSheet("QLabel { background-color : " + signalcolor + ";}");
     }
-
     if (m_settings->value("textcolor").isValid()) {
         textcolor = m_settings->value("textcolor").toString();
         m_ui->lbText->setStyleSheet("QLabel { background-color : " + textcolor + ";}");
     }
-
     updateSettings();
 }
 
@@ -99,15 +87,6 @@ SettingsDialog::Settings SettingsDialog::settings() const
     return m_currentSettings;
 }
 
-void SettingsDialog::showPortInfo(int idx)
-{
-    if (idx == -1) {
-        return;
-    }
-
-    const QStringList list = m_ui->serialPortInfoListBox->itemData(idx).toStringList();
-}
-
 void SettingsDialog::apply()
 {
     updateSettings();
@@ -118,7 +97,6 @@ void SettingsDialog::checkCustomBaudRatePolicy(int idx)
 {
     const bool isCustomBaudRate = !m_ui->baudRateBox->itemData(idx).isValid();
     m_ui->baudRateBox->setEditable(isCustomBaudRate);
-
     if (isCustomBaudRate) {
         m_ui->baudRateBox->clearEditText();
         QLineEdit* edit = m_ui->baudRateBox->lineEdit();
@@ -130,7 +108,6 @@ void SettingsDialog::checkCustomDevicePathPolicy(int idx)
 {
     const bool isCustomPath = !m_ui->serialPortInfoListBox->itemData(idx).isValid();
     m_ui->serialPortInfoListBox->setEditable(isCustomPath);
-
     if (isCustomPath) {
         m_ui->serialPortInfoListBox->clearEditText();
     }
@@ -155,62 +132,57 @@ void SettingsDialog::fillPortsParameters()
     m_ui->parityBox->addItem(tr("None"), QSerialPort::NoParity);
     m_ui->parityBox->addItem(tr("Even"), QSerialPort::EvenParity);
     m_ui->parityBox->addItem(tr("Odd"), QSerialPort::OddParity);
-    m_ui->parityBox->addItem(tr("Mark"), QSerialPort::MarkParity);
-    m_ui->parityBox->addItem(tr("Space"), QSerialPort::SpaceParity); 
 }
 
+#ifndef Q_OS_ANDROID
 void SettingsDialog::fillPortsInfo()
 {
     m_ui->serialPortInfoListBox->clear();
-    QString description;
-    QString manufacturer;
-    QString serialNumber;
     const auto infos = QSerialPortInfo::availablePorts();
-
     for (const QSerialPortInfo& info : infos) {
-        QStringList list;
-        description = info.description();
-        manufacturer = info.manufacturer();
-        serialNumber = info.serialNumber();
-        list << info.portName()
-             << (!description.isEmpty() ? description : blankString)
-             << (!manufacturer.isEmpty() ? manufacturer : blankString)
-             << (!serialNumber.isEmpty() ? serialNumber : blankString)
-             << info.systemLocation()
-             << (info.vendorIdentifier() ? QString::number(info.vendorIdentifier(), 16) : blankString)
-             << (info.productIdentifier() ? QString::number(info.productIdentifier(), 16) : blankString);
-        m_ui->serialPortInfoListBox->addItem(list.first(), list);
+        m_ui->serialPortInfoListBox->addItem(info.portName(), info.portName());
     }
-
     m_ui->serialPortInfoListBox->addItem(tr("Custom"));
 }
+#else
+void SettingsDialog::fillPortsInfo(QJniObject &usbSerial)
+{
+    QJniObject drivers = usbSerial.callObjectMethod
+                    ("drivers"
+                    , "(Landroid/content/Context;)Ljava/util/List;"
+                    , QNativeInterface::QAndroidApplication::context());
+    int size = drivers.callMethod<jint>("size");
+    m_ui->serialPortInfoListBox->clear();
+    for (int i = 0; i < size; i++) {
+        QJniObject driver = drivers.callObjectMethod("get", "(I)Ljava/lang/Object;", i);
+        QString name = driver.toString();
+        if (name.contains("com.hoho.android.usbserial.driver."))
+            name = name.right(name.length() - QString("com.hoho.android.usbserial.driver.").length());
+        m_ui->serialPortInfoListBox->addItem(name, name);
+    }
+    m_ui->serialPortInfoListBox->addItem(tr("Custom"));
+}
+#endif
 
 void SettingsDialog::updateSettings()
 {
     m_currentSettings.name = m_ui->serialPortInfoListBox->currentText();
-    m_settings->setValue("serialport", m_ui->serialPortInfoListBox->currentText());
-
-    if (m_ui->baudRateBox->currentIndex() == 4) {
+    m_settings->setValue("serialport", m_currentSettings.name);
+    if (m_ui->baudRateBox->currentIndex() == m_ui->baudRateBox->count()) {
         m_currentSettings.baudRate = m_ui->baudRateBox->currentText().toInt();
     } else {
         m_currentSettings.baudRate = static_cast<QSerialPort::BaudRate>(
                                          m_ui->baudRateBox->itemData(m_ui->baudRateBox->currentIndex()).toInt());
     }
-
-    m_currentSettings.stringBaudRate = QString::number(m_currentSettings.baudRate);
-    m_settings->setValue("baudrate", m_ui->baudRateBox->currentText().toInt());
+    m_settings->setValue("baudrate", m_currentSettings.baudRate);
     m_currentSettings.dataBits = static_cast<QSerialPort::DataBits>(
                                      m_ui->dataBitsBox->itemData(m_ui->dataBitsBox->currentIndex()).toInt());
-    m_currentSettings.stringDataBits = m_ui->dataBitsBox->currentText();
-    m_settings->setValue("databits", m_ui->dataBitsBox->currentText().toInt());
+    m_settings->setValue("databits", m_currentSettings.dataBits);
     m_currentSettings.parity = static_cast<QSerialPort::Parity>(
                                    m_ui->parityBox->itemData(m_ui->parityBox->currentIndex()).toInt());
-    m_currentSettings.stringParity = m_ui->parityBox->currentText();
-    m_settings->setValue("parity", m_ui->parityBox->currentIndex());
-
+    m_settings->setValue("parity", m_currentSettings.parity);
     m_currentSettings.interval = m_ui->sbInterval->value();
-    m_settings->setValue("interval", m_ui->sbInterval->value());
-
+    m_settings->setValue("interval", m_currentSettings.interval);
     m_currentSettings.backgroundcolor = backgroundcolor;
     m_settings->setValue("backgroundcolor", backgroundcolor);
     m_currentSettings.gridcolor = gridcolor;
