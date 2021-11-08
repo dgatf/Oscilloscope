@@ -15,10 +15,14 @@ ISR(ADC_vect) {
 void setup() {
     serial.begin(1000000);
 
-    /* ADC init */
-    // Capture time: F_CPU / ADC_PRESCALER / 13 ADC TICKS = 1.6M / 16 / 13 = 76923 -> 1 / 76923 = 13 us
+    /* ADC init
+       Capture time: F_CPU / ADC_PRESCALER / 13 ADC TICKS:
+                     Prescaler 32: 1.6M / 32 / 13 = 76923 -> 1 / 38461 = 26 us
+                     Prescaler 16: 1.6M / 16 / 13 = 76923 -> 1 / 76923 = 13 us (this is too fast for some devices)
+    */
     ADMUX = _BV(REFS0) | _BV(ADLAR);
-    ADCSRA = _BV(ADEN) | _BV(ADATE) | _BV(ADIE) | _BV(ADPS2); // prescaler 16
+    //ADCSRA = _BV(ADEN) | _BV(ADATE) | _BV(ADIE) | _BV(ADPS2);            // prescaler 16
+    ADCSRA = _BV(ADEN) | _BV(ADATE) | _BV(ADIE) | _BV(ADPS2) | _BV(ADPS0); // prescaler 32
     ADCSRB = 0;
     ADCSRA |= _BV(ADSC);
 

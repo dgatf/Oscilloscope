@@ -25,6 +25,10 @@
 #include <QMessageBox>
 #include <QToolBar>
 
+#ifdef Q_OS_ANDROID
+#include <QJniObject>
+#endif
+
 QT_BEGIN_NAMESPACE
 namespace Ui
 {
@@ -42,42 +46,57 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     void resizeEvent(QResizeEvent* event);
+#ifdef Q_OS_ANDROID
+    static MainWindow *instance() { return m_instance; }
 
-    uint16_t interval; // us
+signals:
+    void receiveBuffer(const QByteArray &buffer);
+    void receiveStatus(int status, const QString &msg);
+#endif
 
 private:
+    enum Edge { min, max };
+    enum TriggerType { none, rising, falling };
     Ui::MainWindow *ui;
-    QSerialPort *m_serial = nullptr;
     QPixmap *m_pixmap;
     QPainter *m_paint;
     SettingsDialog *m_ui_settings = nullptr;
-    QLabel *m_statusLabel = nullptr;
 
+    uint16_t interval = 26; // us
     float vDiv = 1; // v
     float volt = 1 * 6;
     float hDiv = 1; // ms
     uint16_t timeLenght = hDiv * 10;
     float trigger = 1;
-    enum Edge { min, max };
-    enum TriggerType { none, rising, falling };
     TriggerType triggerType = rising;
-
     uint8_t maxValue = 0;
     uint8_t minValue = 0;
     uint16_t rawFreq = 0;
     uint16_t rawDuty = 0;
     bool pendingExport = false;
     QString fileName;
-
+    QLabel *m_statusLabel = nullptr;
     QAction *connectAct;
     QAction *disconnectAct;
 
+#ifdef Q_OS_ANDROID
+    enum Status { CONNECTED, DISCONNECTED, PERMISSION_NOT_GRANTED, ERROR_CONNECTING, ERROR_OPENING, CONNECTION_LOST };
+    Status status = Status::DISCONNECTED;
+    static MainWindow *m_instance;
+    QJniEnvironment env;
+    QJniObject usbSerial;
+    void readData(const QByteArray &data);
+    void readStatus(int status, const QString &msg);
+#else
+    QSerialPort *m_serial = nullptr;
+#endif
     void drawBackground();
+    void processData(const QByteArray &data);
+    void setJni();
 
 private slots:
     void openSerialPort();
     void closeSerialPort();
-    void readData();
     void updateTrigger();
     void updateTriggerType();
     void exitApp();
@@ -87,6 +106,11 @@ private slots:
     void about();
     void exportData();
     void refresh();
+#ifndef Q_OS_ANDROID
+    void readData();
+#else
+    //void readData(const QByteArray &data);
+#endif
 };
 
 #endif // MAINWINDOW_H

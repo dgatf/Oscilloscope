@@ -8,9 +8,9 @@ A simple oscilloscope application that reads the values at serial port generated
 <p align="center"><img src="./images/img2.png" width="300"><br>
   <i>Settings</i><br><br></p>
 
-It is optimized for AVR ATmega MCUs with 13μs sampling resolution. For other boards the resolution is 200μs
+It is optimized for AVR ATmega MCUs with 26μs sampling resolution. For other boards the resolution is 200μs
 
-Flash _oscilloscope_. In the Oscilloscope app configure the serial port. By default 1000000bps, 8bits and no parity. Interval is 13μs for AVR ATmega and 200μs for other MCUs
+Flash _oscilloscope_. In the Oscilloscope app configure the serial port. By default 1000000bps, 8bits and no parity. Interval is 26μs for AVR ATmega and 200μs for other MCUs
 
 You can connect any signal up to 5 volts to the analog pin A0. For signals over 5V a voltage divider is needed.
 
@@ -29,3 +29,10 @@ Or build from sources:
 - cd to src/qt folder
 - qmake
 - make
+
+Supported OS:
+
+ - Linux
+ - Windows
+ - Android (experimental)
+ - MaxOS (not tested)

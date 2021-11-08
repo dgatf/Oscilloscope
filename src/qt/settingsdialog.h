@@ -18,11 +18,14 @@
 
 #include <QDialog>
 #include <QSerialPort>
+#include <QSerialPortInfo>
 #include <QSettings>
 #include <QDebug>
 #include <QLineEdit>
-#include <QSerialPortInfo>
 #include <QColorDialog>
+#ifdef Q_OS_ANDROID
+#include <QJniObject>
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -43,15 +46,8 @@ public:
     struct Settings {
         QString name;
         qint32 baudRate;
-        QString stringBaudRate;
         QSerialPort::DataBits dataBits;
-        QString stringDataBits;
         QSerialPort::Parity parity;
-        QString stringParity;
-        QSerialPort::StopBits stopBits;
-        QString stringStopBits;
-        QSerialPort::FlowControl flowControl;
-        QString stringFlowControl;
         qint16 interval;
         QString backgroundcolor;
         QString gridcolor;
@@ -59,36 +55,34 @@ public:
         QString textcolor;
     };
 
+    enum Element {background, grid, signal, text};
     Settings m_currentSettings;
     QSettings *m_settings;
-
     explicit SettingsDialog(QWidget *parent = nullptr);
     ~SettingsDialog();
-
     Settings settings() const;
-    enum Element {background, grid, signal, text};
+#ifdef Q_OS_ANDROID
+    void fillPortsInfo(QJniObject &usbSerial);
+#endif
 
 private slots:
-    void showPortInfo(int idx);
     void apply();
     void checkCustomBaudRatePolicy(int idx);
     void checkCustomDevicePathPolicy(int idx);
     void color(Element element);
 
 private:
-    void fillPortsParameters();
-    void fillPortsInfo();
-    void updateSettings();
-
-private:
     Ui::SettingsDialog *m_ui = nullptr;
-
     QIntValidator *m_intValidator = nullptr;
-
     QString backgroundcolor;
     QString gridcolor;
     QString signalcolor;
     QString textcolor;
+#ifndef Q_OS_ANDROID
+    void fillPortsInfo();
+#endif
+    void fillPortsParameters();
+    void updateSettings();
 };
 
 #endif // SETTINGSDIALOG_H
