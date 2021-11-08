@@ -35,4 +35,4 @@ Supported OS:
  - Linux
  - Windows
  - Android (experimental)
- - MaxOS (not tested)
+ - MacOS (not tested)
