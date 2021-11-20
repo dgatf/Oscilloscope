@@ -132,7 +132,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->cbHdiv, &QComboBox::currentTextChanged, this, &MainWindow::updateHdiv);
     connect(ui->cbVdiv, &QComboBox::currentTextChanged, this, &MainWindow::updateVdiv);
     connect(ui->cbTriggerType, &QComboBox::currentTextChanged, this, &MainWindow::updateTriggerType);
-    connect(ui->sbTriggerValue, &QDoubleSpinBox::textChanged, this, &MainWindow::updateTrigger);
+    connect(ui->sbTriggerValue, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::updateTrigger);
     connect(m_ui_settings, &SettingsDialog::accepted, this, &MainWindow::refresh);
     ui->lbPic->adjustSize();
     drawBackground();
