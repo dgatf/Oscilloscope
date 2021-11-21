@@ -22,7 +22,7 @@ Pin OC1B location:
  - Leonardo:   pin 10 (PB6)
  - ATmega2560: pin 12 (PB6)
 
-Find binaries [here](https://github.com/dgatf/Oscilloscope/tree/main/binaries)
+Find binaries [here](https://github.com/dgatf/Oscilloscope/releases)
 
 Or build from sources:
 - install qt (>=5.9)
