@@ -25,7 +25,7 @@ Pin OC1B location:
 Find binaries [here](https://github.com/dgatf/Oscilloscope/tree/main/binaries)
 
 Or build from sources:
-- install qt
+- install qt (>=5.9)
 - cd to src/qt folder
 - qmake
 - make
