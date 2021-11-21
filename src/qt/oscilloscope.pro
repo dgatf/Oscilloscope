@@ -1,8 +1,10 @@
-QT       += core gui serialport
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT       += qml quick serialport widgets
 
 CONFIG += c++11 console
+
+VERSION = 0.2
+
+DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -10,16 +12,13 @@ CONFIG += c++11 console
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp \
-    settingsdialog.cpp
+    oscilloscope.cpp
 
 HEADERS += \
-    mainwindow.h \
-    settingsdialog.h
+    oscilloscope.h
 
-FORMS += \
-    mainwindow.ui \
-    settingsdialog.ui
+FORMS +=
+    # mainwindow.ui \
 
 win32 {
     TARGET = oscilloscope_win
@@ -40,12 +39,12 @@ RESOURCES += \
     resources.qrc
 
 DISTFILES += \
-    ../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/AndroidManifest.xml \
-    ../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/build.gradle \
-    ../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/gradle.properties \
-    ../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/gradle/wrapper/gradle-wrapper.jar \
-    ../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/gradle/wrapper/gradle-wrapper.properties \
-    ../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/gradlew \
-    ../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/gradlew.bat \
-    ../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/res/values/libs.xml \
-    ../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/src/org/qtproject/qt/UsbSerialInterface.java
+    android/AndroidManifest.xml \
+    android/build.gradle \
+    android/gradle.properties \
+    android/gradle/wrapper/gradle-wrapper.jar \
+    android/gradle/wrapper/gradle-wrapper.properties \
+    android/gradlew \
+    android/gradlew.bat \
+    android/res/values/libs.xml \
+    android/src/org/qtproject/qt/UsbSerialInterface.java \
