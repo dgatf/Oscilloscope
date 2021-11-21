@@ -231,17 +231,18 @@ void Oscilloscope::processData(const QByteArray &data)
             deltaRising = 0;
         }
         prevValue = data[i];
-        if (((float)deltaRising) / 0xFF * 5 > triggerValue / 1000) {
+        if (((float)deltaRising) / 0xFF * 5 > triggerValue / 1000.0) {
             if ((triggerType == rising || triggerType == none) && triggerCont - tsRising > 2) {
                 isTriggered = true;
                 rawFreq = triggerCont - tsRising;
                 rawDuty = triggerCont - tsFalling;
+                qInfo() << rawFreq;
             }
             deltaRising = 0;
             deltaFalling = 0;
             tsRising = triggerCont;
         }
-        if (((float)deltaFalling) / 0xFF * 5 > triggerValue / 1000) {
+        if (((float)deltaFalling) / 0xFF * 5 > triggerValue / 1000.0) {
             if (triggerType == falling  && triggerCont - tsFalling > 2) {
                 isTriggered = true;
                 rawFreq = triggerCont - tsFalling;

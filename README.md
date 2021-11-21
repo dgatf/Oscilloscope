@@ -25,7 +25,7 @@ Pin OC1B location:
 Find binaries [here](https://github.com/dgatf/Oscilloscope/releases)
 
 Or build from sources:
-- install qt
+- install qt (>=5.11)
 - cd to src/qt folder
 - qmake
 - make
@@ -34,11 +34,11 @@ Supported OS:
 
  - Linux
  - Windows
- - Android (experimental)
- - MacOS (not tested)
+ - Android
+ - MacOS (untested)
 
 
-Change log:
+## Change log:
 
 v0.2
 - Upgrade to qml gui

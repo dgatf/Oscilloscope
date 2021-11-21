@@ -115,6 +115,7 @@ Item {
 
                 SpinBox {
                     id: triggerValueSpin
+                    editable: true
                     Layout.fillWidth: true
                     from: 0
                     to: 5000
