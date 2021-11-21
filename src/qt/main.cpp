@@ -13,14 +13,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mainwindow.h"
-
 #include <QApplication>
+#include <QQmlApplicationEngine>
+#include <QQuickView>
+#include <QQmlContext>
+#include <QQmlComponent>
+
+#include "oscilloscope.h"
+
+//jobject context;
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
-    MainWindow w;
-    w.show();
-    return a.exec();
+    QApplication app(argc, argv);
+    QQmlApplicationEngine engine;
+#ifdef Q_OS_ANDROID
+    jobject context = QNativeInterface::QAndroidApplication::context();
+    Oscilloscope oscilloscope(app.devicePixelRatio(), context);
+    const QUrl url(QStringLiteral("qrc:/mainwindow_device.qml"));
+#else
+    Oscilloscope oscilloscope(app.devicePixelRatio());
+    const QUrl url(QStringLiteral("qrc:/mainwindow.qml"));
+#endif
+    QObject::connect(&engine, &QQmlApplicationEngine::quit, &app, &QCoreApplication::quit);
+    app.setWindowIcon(QIcon(":res/oscilloscope.png"));
+    app.setOrganizationName("DanielGeA");
+    app.setOrganizationDomain("DanielGeA");
+    engine.rootContext()->setContextProperty("oscilloscope", &oscilloscope);
+    engine.addImageProvider(QLatin1String("imgProvider"), &oscilloscope);
+    engine.load(url);
+    return app.exec();
 }
