@@ -36,3 +36,14 @@ Supported OS:
  - Windows
  - Android (experimental)
  - MacOS (not tested)
+
+
+Change log:
+
+v0.2
+- Upgrade to qml gui
+- Add csv export
+- Improve android support 
+
+[v0.1](https://github.com/dgatf/Oscilloscope/releases/tag/v0.1)
+- Initial release
