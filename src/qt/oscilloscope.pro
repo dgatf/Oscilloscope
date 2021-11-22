@@ -22,7 +22,7 @@ FORMS +=
 
 win32 {
     TARGET = oscilloscope_win
-    RC_ICONS = oscilloscope.ico
+    RC_ICONS = res/oscilloscope.ico
 }
 unix {
     TARGET = oscilloscope_linux

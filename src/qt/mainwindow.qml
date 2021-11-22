@@ -21,10 +21,11 @@ Window {
         property string databits
         property string parity
         property string interval
-        property string background
-        property string grid
-        property string signal
-        property string text
+        property string backgroundColor
+        property string gridColor
+        property string signalColor
+        property string textColor
+        property string averagingElements
 
         //property alias x: window.x
         //property alias y: window.y
@@ -34,6 +35,7 @@ Window {
 
     FileDialog {
         id: fileDialogCapture
+        title: "Export image"
         fileMode:  FileDialog.SaveFile
         nameFilters: ["Bitmap image (*.bmp)","All Files (*)"]
         onAccepted: oscilloscope.exportImage(fileDialogCapture.currentFile)
@@ -41,32 +43,33 @@ Window {
 
     FileDialog {
         id: fileDialogExport
+        title: "Export data"
         fileMode:  FileDialog.SaveFile
         nameFilters: ["Text CSV (*.csv)","All Files (*)"]
         onAccepted: oscilloscope.exportCsv(fileDialogExport.currentFile)
     }
 
-    /*ColorDialog {
+    ColorDialog {
         id: colorDialog
         property string setting: ""
         onAccepted: {
             console.log(color)
             switch (setting) {
                 case "background":
-                    oscilloscope.setBackgroundColor(color)
+                    settingsItem.backgroundColor = color
                     break
                 case "grid":
-                    oscilloscope.setGridColor(color)
+                    settingsItem.gridColor = color
                     break
                 case "signal":
-                    oscilloscope.setSignalColor(color)
+                    settingsItem.signalColor = color
                     break
                 case "text":
-                    oscilloscope.setTextColor(color)
+                    settingsItem.textColor = color
                     break
             }
         }
-    }*/
+    }
 
     Timer {
         id: timer
@@ -247,8 +250,8 @@ Window {
 
         Window {
             id: settingsWindow
-            width: 300 //settings.childrenRect.width * 1
-            height: 350 //settings.childrenRect.height * 1
+            width: 300
+            height: settingsItem.childrenRect.height
             maximumHeight: height
             maximumWidth: width
             minimumHeight: height

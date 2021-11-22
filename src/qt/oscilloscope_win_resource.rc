@@ -1,10 +1,10 @@
 #include <windows.h>
 
-IDI_ICON1	ICON	DISCARDABLE	"/mnt/data/daniel/src/qt/oscilloscope/src/qt/oscilloscope.ico"
+IDI_ICON1	ICON	DISCARDABLE	"/mnt/data/daniel/src/qt/oscilloscope/src/qt/res/oscilloscope.ico"
 
 VS_VERSION_INFO VERSIONINFO
-	FILEVERSION 0,0,0,0
-	PRODUCTVERSION 0,0,0,0
+	FILEVERSION 0,2,0,0
+	PRODUCTVERSION 0,2,0,0
 	FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
 	FILEFLAGS VS_FF_DEBUG
@@ -21,11 +21,11 @@ VS_VERSION_INFO VERSIONINFO
 			BEGIN
 				VALUE "CompanyName", "\0"
 				VALUE "FileDescription", "\0"
-				VALUE "FileVersion", "0.0.0.0\0"
+				VALUE "FileVersion", "0.2.0.0\0"
 				VALUE "LegalCopyright", "\0"
 				VALUE "OriginalFilename", "oscilloscope_win.exe\0"
 				VALUE "ProductName", "oscilloscope_win\0"
-				VALUE "ProductVersion", "0.0.0.0\0"
+				VALUE "ProductVersion", "0.2.0.0\0"
 			END
 		END
 		BLOCK "VarFileInfo"

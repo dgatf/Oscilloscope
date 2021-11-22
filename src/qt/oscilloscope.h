@@ -84,6 +84,8 @@ private:
     quint8 minValue = 0;
     quint16 rawFreq = 0;
     quint16 rawDuty = 0;
+    float rawFreqAvg = 0;
+    float rawDutyAvg = 0;
     bool pendingExport = false;
     bool pendingCsv = false;
     bool pendingPause = false;
