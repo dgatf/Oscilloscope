@@ -236,7 +236,8 @@ void Oscilloscope::processData(const QByteArray &data)
                 isTriggered = true;
                 rawFreq = triggerCont - tsRising;
                 rawDuty = triggerCont - tsFalling;
-                qInfo() << rawFreq;
+                rawFreqAvg = 0.1 * rawFreq + 0.9 * rawFreqAvg;
+                rawDutyAvg = 0.1 * rawDuty + 0.9 * rawDutyAvg;
             }
             deltaRising = 0;
             deltaFalling = 0;
@@ -247,6 +248,8 @@ void Oscilloscope::processData(const QByteArray &data)
                 isTriggered = true;
                 rawFreq = triggerCont - tsFalling;
                 rawDuty = triggerCont - tsRising;
+                rawFreqAvg = 0.1 * rawFreq + 0.9 * rawFreqAvg;
+                rawDutyAvg = 0.1 * rawDuty + 0.9 * rawDutyAvg;
             }
             deltaRising = 0;
             deltaFalling = 0;
@@ -340,12 +343,12 @@ void Oscilloscope::drawBackground()
     paint->drawText(5, height - 5, QString::number(vDiv) + "mV/d    " + QString::number(hDiv) + "μs/d    Vmax=" + QString::number((float)maxValue / 0xFF * 5, 'f',
                     3) + "    Vmin=" + QString::number((float)minValue / 0xFF * 5, 'f', 3));
     QString freq, duty;
-    if (rawFreq == 0) {
+    if (rawFreqAvg == 0) {
         freq = "0";
         duty = "0";
     } else {
-        freq = QString::number((float)1000000 / (rawFreq * interval), 'f', 0);
-        duty = QString::number(100 * (float)rawDuty / rawFreq, 'f', 0);
+        freq = QString::number((float)1000000 / (rawFreqAvg * interval), 'f', 0);
+        duty = QString::number(100 * (float)rawDutyAvg / rawFreqAvg, 'f', 0);
     }
     paint->drawText(5, font.pixelSize() + 5, freq + "Hz   " + duty + "%");
 }

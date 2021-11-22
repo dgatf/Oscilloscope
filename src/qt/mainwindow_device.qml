@@ -4,7 +4,7 @@ import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
 import Qt.labs.settings 1.0
 import QtQuick.Dialogs 1.0
-//import Qt.labs.platform
+import Qt.labs.platform 1.0
 
 Window {
     id: window
@@ -19,19 +19,26 @@ Window {
         property string databits
         property string parity
         property string interval
-        property string background
-        property string grid
-        property string signal
-        property string text
+        property string backgroundColor
+        property string gridColor
+        property string signalColor
+        property string textColor
     }
 
     FileDialog {
-        id:fileDialog
+        id: fileDialogCapture
         fileMode:  FileDialog.SaveFile
         nameFilters: ["Bitmap image (*.bmp)","All Files (*)"]
-        onAccepted: oscilloscope.exportData(fileDialog.currentFile)
+        onAccepted: oscilloscope.exportImage(fileDialogCapture.currentFile)
     }
-/*
+
+    FileDialog {
+        id: fileDialogExport
+        fileMode:  FileDialog.SaveFile
+        nameFilters: ["Text CSV (*.csv)","All Files (*)"]
+        onAccepted: oscilloscope.exportCsv(fileDialogExport.currentFile)
+    }
+
     ColorDialog {
         id: colorDialog
         property string setting: ""
@@ -39,21 +46,21 @@ Window {
             console.log(color)
             switch (setting) {
                 case "background":
-                    oscilloscope.setBackgroundColor(color)
+                    settingsItem.backgroundColor = color
                     break
                 case "grid":
-                    oscilloscope.setGridColor(color)
+                    settingsItem.gridColor = color
                     break
                 case "signal":
-                    oscilloscope.setSignalColor(color)
+                    settingsItem.signalColor = color
                     break
                 case "text":
-                    oscilloscope.setTextColor(color)
+                    settingsItem.textColor = color
                     break
             }
         }
     }
-*/
+
     Timer {
         id: timer
         onTriggered: mainItem.statusText =  mainItem.statusTextPermanent
@@ -62,12 +69,12 @@ Window {
     Connections {
         target: oscilloscope
 
-        function onSendPixmap() {
+        onSendPixmap: {
             mainItem.imageSource =  ""
             mainItem.imageSource =  "image://imgProvider"
         }
 
-        function onSendMessage(message, duration) {
+        onSendMessage: {
             if (duration === 0)
                 mainItem.statusTextPermanent = message
             else {
@@ -77,19 +84,35 @@ Window {
             mainItem.statusText =  message
         }
 
-        function onSendStatusConn(status) {
+        onSendStatusConn: {
             if (status === 0) { // connected
-                connectButton.icon.source = "qrc:res/connect.png"
                 connectButton.status = "connected"
-                disconnectMenu.enabled = true
-                connectMenu.enabled = false
+                connectMenu.status = "connected"
+                pauseButton.enabled = true
+                exportButton.enabled = true
+                pauseMenu.enabled = true
+                exportMenu.enabled = true
             }
             if (status === 1) { // disconnected
-                connectButton.icon.source = "qrc:res/disconnect.png"
                 connectButton.status = "disconnected"
-                disconnectMenu.enabled = false
-                connectMenu.enabled = true
+                connectMenu.status = "disconnected"
+                pauseButton.enabled = false
+                exportButton.enabled = false
+                pauseMenu.enabled = false
+                exportMenu.enabled = false
             }
+        }
+
+        onIsPausedChanged: {
+            if (isPaused) {
+                pauseButton.isPaused = true
+                pauseMenu.isPaused = true
+            }
+            else {
+                pauseButton.isPaused = false
+                pauseMenu.isPaused = false
+            }
+
         }
     }
 
@@ -107,6 +130,8 @@ Window {
                     onClicked: {
                         stack.pop()
                         connectButton.visible = true
+                        pauseButton.visible = true
+                        captureButton.visible = true
                         exportButton.visible = true
                         menuButton.visible = true
                         backButton.visible = false
@@ -118,20 +143,33 @@ Window {
                     property string status: "disconnected"
                     icon.height: 32
                     icon.width: 32
-                    icon.source: "qrc:res/disconnect.png"
-                    onClicked: {
-                        if (status === "disconnected")
-                            oscilloscope.openSerialPort(settings.portname, settings.baudrate, settings.databits, settings.parity, settings.interval)
-                        else
-                            oscilloscope.closeSerialPort()
-                    }
+                    icon.source: (status === "disconnected") ? "qrc:res/disconnect.png" :"qrc:res/connect.png"
+                    onClicked: (status === "disconnected")
+                                ? oscilloscope.openSerialPort(settings.portname, settings.baudrate, settings.databits, settings.parity, settings.interval)
+                                : oscilloscope.closeSerialPort()
+                }
+                ToolButton {
+                    id: pauseButton
+                    property bool isPaused: false
+                    enabled: false
+                    icon.height: 32
+                    icon.width: 32
+                    icon.source: (isPaused === false) ? "qrc:res/pause.png" : "qrc:res/play.png"
+                    onClicked: oscilloscope.setIsPaused(!oscilloscope.getIsPaused())
+                }
+                ToolButton {
+                    id: captureButton
+                    icon.height: 32
+                    icon.width: 32
+                    icon.source: "qrc:res/capture.png"
+                    onClicked: fileDialogCapture.open()
                 }
                 ToolButton {
                     id: exportButton
                     icon.height: 32
                     icon.width: 32
-                    icon.source: "qrc:android/res/save.png"
-                    onClicked: fileDialog.open()
+                    icon.source: "qrc:res/export.png"
+                    onClicked: fileDialogExport.open()
                 }
                 Label {
                     id: toolBarLabel
@@ -150,45 +188,49 @@ Window {
                     Menu {
                         id: menu
 
-                        Action {
+                        MenuItem {
                             id: connectMenu
                             text: "Connect"
                             onTriggered: oscilloscope.openSerialPort(settings.portname, settings.baudrate, settings.databits, settings.parity, settings.interval)
                         }
-                        Action {
+                        MenuItem {
                             id: disconnectMenu
                             enabled: false
                             text: "Disconnect"
                             onTriggered: { oscilloscope.closeSerialPort(); /*settingsItem.fillPorts()*/ }
                         }
-                        Action {
+                        MenuItem {
                             text: "Export"
                             onTriggered: fileDialog.open()
                         }
-                        Action {
+                        MenuItem {
                             text: "Settings"
                             onTriggered: {
                                 settingsItem.fillPorts()
                                 stack.push(settingsItem)
                                 connectButton.visible = false
+                                pauseButton.visible = false
+                                captureButton.visible = false
                                 exportButton.visible = false
                                 backButton.visible = true
                                 menuButton.visible = false
                                 toolBarLabel.text = "Settings"
                             }
                         }
-                        Action {
+                        MenuItem {
                             text: "About"
                             onTriggered: {
                                 stack.push(aboutItem)
                                 connectButton.visible = false
+                                pauseButton.visible = false
+                                captureButton.visible = false
                                 exportButton.visible = false
                                 backButton.visible = true
                                 menuButton.visible = false
                                 toolBarLabel.text = "Oscilloscope"
                             }
                         }
-                        Action {
+                        MenuItem {
                             text: "Quit"
                             onTriggered: Qt.quit()
                         }

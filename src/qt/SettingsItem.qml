@@ -4,6 +4,11 @@ import QtQuick.Layouts 1.0
 
 Item {
 
+    property alias backgroundColor: backgroundRect.color
+    property alias gridColor: gridRect.color
+    property alias signalColor: signalRect.color
+    property alias textColor: textRect.color
+
     function fillPorts() {
         portnames.clear()
         const infos = oscilloscope.fillPortsInfo()
@@ -24,6 +29,7 @@ Item {
             settings.baudrate = baudrate.currentText
         else
             baudrate.currentIndex = baudrate.find(settings.baudrate)
+
         if (databits.find(settings.databits) === -1)
             settings.databits = databits.currentText
         else
@@ -32,18 +38,42 @@ Item {
         if (parity.find(settings.parity) === -1)
             settings.parity = parity.currentText
         else
-        parity.currentIndex = parity.find(settings.parity)
+            parity.currentIndex = parity.find(settings.parity)
 
         if (settings.interval === "")
             settings.interval = interval.value
         else
             interval.value = parseInt(settings.interval)
 
+        if (settings.backgroundColor === "")
+            settings.backgroundColor = backgroundRect.color
+        else
+            backgroundRect.color = settings.backgroundColor
+
+        if (settings.gridColor === "")
+            settings.gridColor = gridRect.color
+        else
+            gridRect.color = settings.gridColor
+
+        if (settings.signalColor === "")
+            settings.signalColor = signalRect.color
+        else
+            signalRect.color = settings.signalColor
+
+        if (settings.textColor === "")
+            settings.textColor = textRect.color
+        else
+            textRect.color = settings.textColor
+
         settings.portname = Qt.binding(function() { return portname.currentText })
         settings.baudrate = Qt.binding(function() { return baudrate.currentText })
         settings.databits = Qt.binding(function() { return databits.currentText })
         settings.parity = Qt.binding(function() { return parity.currentText })
         settings.interval = Qt.binding(function() { return interval.value })
+        settings.backgroundColor = Qt.binding(function() { return backgroundRect.color })
+        settings.gridColor = Qt.binding(function() { return gridRect.color })
+        settings.signalColor = Qt.binding(function() { return signalRect.color })
+        settings.textColor = Qt.binding(function() { return textRect.color })
     }
     GridLayout {
         anchors.left: parent.left
@@ -113,12 +143,22 @@ Item {
         }
         GroupBox {
            id: colors
-           visible: false
            title: "Colors"
            Layout.fillWidth: true
             GridLayout {
                 anchors.fill: parent
                 columns: 2
+                Button {
+                    text: "Default colors"
+                    Layout.fillWidth: true
+                    onClicked: {
+                        backgroundRect.color = '#000000'
+                        gridRect.color = '#77767b'
+                        signalRect.color = '#33d17a'
+                        textRect.color = '#f9f06b'
+                    }
+                }
+                Label {}
                 Button {
                     id: background
                     text: "Background"
