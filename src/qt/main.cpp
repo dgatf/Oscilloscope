@@ -21,15 +21,15 @@
 
 #include "oscilloscope.h"
 
-//jobject context;
-
 int main(int argc, char *argv[])
 {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif
     QApplication app(argc, argv);
     QQmlApplicationEngine engine;
 #ifdef Q_OS_ANDROID
-    jobject context = QNativeInterface::QAndroidApplication::context();
-    Oscilloscope oscilloscope(app.devicePixelRatio(), context);
+    Oscilloscope oscilloscope(app.devicePixelRatio());
     const QUrl url(QStringLiteral("qrc:/mainwindow_device.qml"));
 #else
     Oscilloscope oscilloscope(app.devicePixelRatio());

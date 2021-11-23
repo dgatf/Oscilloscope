@@ -23,7 +23,9 @@
 #include <QFile>
 #include <QDebug>
 #ifdef Q_OS_ANDROID
-#include <QJniObject>
+#include <QAndroidJniObject>
+#include <QAndroidJniEnvironment>
+#include <QtAndroid>
 #endif
 
 class Oscilloscope : public QObject, public QQuickImageProvider
@@ -37,11 +39,7 @@ public:
     enum Status { connected, disconnected, permission_not_granted, error_connecting, error_opening, connection_lost, driver_not_found, permission_requested };
     Q_ENUM(Status)
     Q_ENUM(TriggerType)
-#ifdef Q_OS_ANDROID
-    Oscilloscope(qreal pixelratio, jobject context);
-#else
     Oscilloscope(qreal pixelratio);
-#endif
     ~Oscilloscope();
     QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requestedSize) override;
     Q_INVOKABLE void openSerialPort(QString portName, QString baudrate, QString dataBits, QString parity, QString interval);
@@ -98,10 +96,10 @@ private:
     qint16 yZeroV;
     quint16 triggerValue = 1000;
     TriggerType triggerType = rising;
-    QString backgroundColor;
-    QString gridColor;
-    QString signalColor;
-    QString textColor;
+    QString backgroundColor = "#000000";
+    QString gridColor = "#77767b";
+    QString signalColor = "#33d17a";
+    QString textColor = "#f9f06b";
     float vAdjust = 0;
     float hAdjust = 0;
     Status status = disconnected;
@@ -113,8 +111,8 @@ private:
     QPainter *paint;
 #ifdef Q_OS_ANDROID
     static Oscilloscope *m_instance;
-    QJniEnvironment env;
-    QJniObject usbSerial;
+    QAndroidJniEnvironment env;
+    QAndroidJniObject usbSerial;
     jobject context;
     void readStatus(int status, const QString &msg);
 #else
