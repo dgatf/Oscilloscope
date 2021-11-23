@@ -4,7 +4,8 @@ android {
     QT += androidextras
 }
 
-CONFIG += c++11 console
+CONFIG += c++11
+#CONFIG += console
 
 VERSION = 0.2
 
