@@ -27,22 +27,20 @@ Oscilloscope::Oscilloscope(qreal pixelRatio)
 {
 }
 #else
-Oscilloscope::Oscilloscope(qreal pixelRatio, jobject context)
+Oscilloscope::Oscilloscope(qreal pixelRatio)
     : QQuickImageProvider(QQuickImageProvider::Pixmap)
     , pixelRatio(pixelRatio)
     , pixmap(new QPixmap(pmWidth, pmHeight))
     , paint(new QPainter(pixmap))
-    , context(context)
 {
     m_instance = this;
     connect(this, &Oscilloscope::receiveBuffer, this, &Oscilloscope::readData);
     connect(this, &Oscilloscope::receiveStatus, this, &Oscilloscope::readStatus);
-    jclass classId = env.findClass("org/qtproject/qt/UsbSerialInterface");
-    usbSerial = QJniObject(classId);
-    JNINativeMethod methods[] {{"sendBuffer", "([B)V", reinterpret_cast<void *>(sendBuffer)}
-        , {"sendStatus", "(ILjava/lang/String;)V", reinterpret_cast<void *>(sendStatus)}
-    };
-    env.registerNativeMethods(classId, methods, 2);
+    jclass classId = env->FindClass("org/qtproject/qt/UsbSerialInterface");
+    usbSerial = QAndroidJniObject(classId);
+    JNINativeMethod methods[] { {"sendBuffer", "([B)V", reinterpret_cast<void *>(sendBuffer)}
+                              , {"sendStatus", "(ILjava/lang/String;)V", reinterpret_cast<void *>(sendStatus)} };
+    env->RegisterNatives(classId, methods, 2);
 }
 #endif
 
@@ -99,8 +97,8 @@ void Oscilloscope::openSerialPort(QString portName, QString baudrate, QString da
     jstring name = env->NewStringUTF(portName.toStdString().c_str());
     usbSerial.callMethod<void>
                         ("openConnection"
-                         , "(Landroid/content/Context;Ljava/lang/String;IIII)V"
-                         , context, name, baudrate.toUInt(), dataBits.toUInt(), 1, parity_android);
+                       , "(Landroid/content/Context;Ljava/lang/String;IIII)V"
+                       , QtAndroid::androidContext().object(), name, baudrate.toUInt(), dataBits.toUInt(), 1, parity_android);
 }
 #endif
 
@@ -181,14 +179,14 @@ QStringList Oscilloscope::fillPortsInfo()
 #else
 QStringList Oscilloscope::fillPortsInfo()
 {
-    QJniObject drivers = usbSerial.callObjectMethod
+    QAndroidJniObject drivers = usbSerial.callObjectMethod
                          ("drivers"
                           , "(Landroid/content/Context;)Ljava/util/List;"
-                          , context);
-    int size = drivers.callMethod<jint>("size");
+                          , QtAndroid::androidContext().object());
     QStringList list;
+    int size = drivers.callMethod<jint>("size");
     for (int i = 0; i < size; i++) {
-        QJniObject driver = drivers.callObjectMethod("get", "(I)Ljava/lang/Object;", i);
+        QAndroidJniObject driver = drivers.callObjectMethod("get", "(I)Ljava/lang/Object;", i);
         QString name = driver.toString();
         if (name.contains("com.hoho.android.usbserial.driver."))
             name = name.right(name.length() - QString("com.hoho.android.usbserial.driver.").length());

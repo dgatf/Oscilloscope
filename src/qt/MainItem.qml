@@ -1,14 +1,14 @@
 import QtQuick 2.9
 import QtQuick.Controls 2.2
-import QtQuick.Layouts 1.3
+import QtQuick.Layouts 1.15
 import QtQuick.Window 2.3
-//import QtQuick.Controls.Styles 1.4
 
 Item {
     property alias statusText : statusLabel.text
     property string statusTextPermanent: statusLabel.textPermanent
     property alias imageSource : image.source
     property alias columns: controls.columns
+    anchors.fill: parent
     ColumnLayout {
         id: column
         anchors.fill: parent

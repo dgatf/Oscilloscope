@@ -1,5 +1,9 @@
 QT       += qml quick serialport widgets
 
+android {
+    QT += androidextras
+}
+
 CONFIG += c++11 console
 
 VERSION = 0.2
@@ -39,6 +43,14 @@ RESOURCES += \
     resources.qrc
 
 DISTFILES += \
+    ../../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/AndroidManifest.xml \
+    ../../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/build.gradle \
+    ../../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/gradle.properties \
+    ../../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/gradle/wrapper/gradle-wrapper.jar \
+    ../../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/gradle/wrapper/gradle-wrapper.properties \
+    ../../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/gradlew \
+    ../../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/gradlew.bat \
+    ../../../../../../../../mnt/data/daniel/src/qt/oscilloscope/src/qt/android/res/values/libs.xml \
     android/AndroidManifest.xml \
     android/build.gradle \
     android/gradle.properties \
