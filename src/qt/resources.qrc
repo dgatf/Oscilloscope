@@ -27,7 +27,6 @@
         <file>mainwindow.qml</file>
         <file>mainwindow_device.qml</file>
         <file>SettingsItem.qml</file>
-        <file>qtquickcontrols2.conf</file>
         <file>res/oscilloscope.png</file>
         <file>res/menu.png</file>
         <file>android/res/menu.png</file>

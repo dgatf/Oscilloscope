@@ -17,7 +17,7 @@
 #include <QQmlApplicationEngine>
 #include <QQuickView>
 #include <QQmlContext>
-#include <QQmlComponent>
+#include <QQuickStyle>
 
 #include "oscilloscope.h"
 
@@ -28,12 +28,13 @@ int main(int argc, char *argv[])
 #endif
     QApplication app(argc, argv);
     QQmlApplicationEngine engine;
+    Oscilloscope oscilloscope(app.devicePixelRatio());
 #ifdef Q_OS_ANDROID
-    Oscilloscope oscilloscope(app.devicePixelRatio());
     const QUrl url(QStringLiteral("qrc:/mainwindow_device.qml"));
+    QQuickStyle::setStyle("Material");
 #else
-    Oscilloscope oscilloscope(app.devicePixelRatio());
     const QUrl url(QStringLiteral("qrc:/mainwindow.qml"));
+    QQuickStyle::setStyle("Fusion");
 #endif
     QObject::connect(&engine, &QQmlApplicationEngine::quit, &app, &QCoreApplication::quit);
     app.setWindowIcon(QIcon(":res/oscilloscope.png"));

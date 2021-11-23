@@ -1,4 +1,4 @@
-QT       += qml quick serialport widgets
+QT       += qml quick serialport widgets quickcontrols2
 
 android {
     QT += androidextras
