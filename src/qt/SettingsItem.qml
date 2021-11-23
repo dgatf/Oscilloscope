@@ -8,6 +8,7 @@ Item {
     property alias gridColor: gridRect.color
     property alias signalColor: signalRect.color
     property alias textColor: textRect.color
+    property alias colorsVisible: colors.visible
 
     function fillPorts() {
         portnames.clear()
@@ -75,6 +76,7 @@ Item {
         settings.signalColor = Qt.binding(function() { return signalRect.color })
         settings.textColor = Qt.binding(function() { return textRect.color })
     }
+
     GridLayout {
         anchors.left: parent.left
         anchors.right: parent.right
@@ -146,7 +148,6 @@ Item {
            title: "Colors"
            Layout.fillWidth: true
             GridLayout {
-                anchors.fill: parent
                 columns: 2
                 Button {
                     text: "Default colors"
