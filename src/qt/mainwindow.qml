@@ -159,6 +159,7 @@ ApplicationWindow {
             }
             ToolButton {
                 id: exportButton
+                enabled: false
                 icon.height: 32
                 icon.width: 32
                 icon.source: "qrc:res/export.png"
