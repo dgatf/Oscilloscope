@@ -2,9 +2,8 @@ import QtQuick 2.9
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.15
-import QtQuick.Dialogs 1.2
 import Qt.labs.settings 1.0
-//import Qt.labs.platform 1.1
+import Qt.labs.platform 1.1
 
 ApplicationWindow {
     id: window
@@ -27,14 +26,14 @@ ApplicationWindow {
 
     FileDialog {
         id: fileDialogCapture
-        //fileMode: Platform.FileDialog.SaveFile
+        fileMode: Platform.FileDialog.SaveFile
         nameFilters: ["Bitmap image (*.bmp)","All Files (*)"]
         onAccepted: oscilloscope.exportImage(fileDialogCapture.currentFile)
     }
 
     FileDialog {
         id: fileDialogExport
-        //fileMode:  FileDialog.SaveFile
+        fileMode:  FileDialog.SaveFile
         nameFilters: ["Text CSV (*.csv)","All Files (*)"]
         onAccepted: oscilloscope.exportCsv(fileDialogExport.currentFile)
     }
@@ -140,6 +139,7 @@ ApplicationWindow {
             }
             ToolButton {
                 id: exportButton
+                enabled: false
                 icon.height: 32
                 icon.width: 32
                 icon.source: "qrc:res/export.png"
@@ -179,11 +179,13 @@ ApplicationWindow {
                         onTriggered: oscilloscope.setIsPaused(!oscilloscope.getIsPaused())
                     }
                     MenuItem {
-                        text: "Capture"
+                        text: "Capture image"
                         onTriggered: fileDialogCapture.open()
                     }
                     MenuItem {
-                        text: "Export"
+                        id: exportMenu
+                        enabled: false
+                        text: "Export CSV"
                         onTriggered: fileDialogExport.open()
                     }
                     MenuItem {
