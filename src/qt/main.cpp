@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 #endif
     QApplication app(argc, argv);
     QQmlApplicationEngine engine;
-    Oscilloscope oscilloscope(app.devicePixelRatio());
+    Oscilloscope *oscilloscope = new Oscilloscope(app.devicePixelRatio());
 #ifdef Q_OS_ANDROID
     const QUrl url(QStringLiteral("qrc:/mainwindow_device.qml"));
     QQuickStyle::setStyle("Material");
@@ -40,8 +40,8 @@ int main(int argc, char *argv[])
     app.setWindowIcon(QIcon(":res/oscilloscope.png"));
     app.setOrganizationName("DanielGeA");
     app.setOrganizationDomain("DanielGeA");
-    engine.rootContext()->setContextProperty("oscilloscope", &oscilloscope);
-    engine.addImageProvider(QLatin1String("imgProvider"), &oscilloscope);
+    engine.rootContext()->setContextProperty("oscilloscope", oscilloscope);
+    engine.addImageProvider(QLatin1String("imgProvider"), oscilloscope);
     engine.load(url);
     return app.exec();
 }
