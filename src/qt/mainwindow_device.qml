@@ -98,6 +98,7 @@ ApplicationWindow {
             ToolButton {
                 id: backButton
                 text: "<"
+                font.pixelSize: 25
                 visible: false
                 onClicked: {
                     stack.pop()
