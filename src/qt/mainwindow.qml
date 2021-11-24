@@ -79,12 +79,12 @@ ApplicationWindow {
     Connections {
         target: oscilloscope
 
-        onSendPixmap: {
+        function onSendPixmap() {
             mainItem.imageSource =  ""
             mainItem.imageSource =  "image://imgProvider"
         }
 
-        onSendMessage: {
+        function onSendMessage(message, duration) {
             if (duration === 0)
                 mainItem.statusTextPermanent = message
             else {
@@ -94,7 +94,7 @@ ApplicationWindow {
             mainItem.statusText =  message
         }
 
-        onSendStatusConn: {
+        function onSendStatusConn(status) {
             if (status === 0) { // connected
                 connectButton.status = "connected"
                 connectMenu.status = "connected"
@@ -113,7 +113,7 @@ ApplicationWindow {
             }
         }
 
-        onIsPausedChanged: {
+        function onIsPausedChanged(isPaused) {
             if (isPaused) {
                 pauseButton.isPaused = true
                 pauseMenu.isPaused = true
@@ -285,7 +285,6 @@ ApplicationWindow {
     }
 
 }
-
 
 
 /*##^##

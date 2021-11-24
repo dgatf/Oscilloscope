@@ -1,4 +1,4 @@
-import QtQuick 2.9
+﻿import QtQuick 2.9
 import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.15
 import QtQuick.Window 2.3
@@ -8,7 +8,6 @@ Item {
     property string statusTextPermanent: statusLabel.textPermanent
     property alias imageSource : image.source
     property alias columns: controls.columns
-    anchors.fill: parent
     ColumnLayout {
         id: column
         anchors.fill: parent
@@ -68,7 +67,7 @@ Item {
                 ComboBox {
                     id: vDivCombo
                     textRole: "text"
-                    //valueRole: "value"
+                    valueRole: "value"
                     Layout.fillWidth: true
                     model: ListModel {
                         id: vDivList
@@ -78,13 +77,13 @@ Item {
                         ListElement { text: "100mV/d"; value: 100 }
                     }
                     currentIndex: 1
-                    onCurrentTextChanged: oscilloscope.setVDiv(vDivList.get(currentIndex).value)
+                    onCurrentValueChanged: oscilloscope.setVDiv(currentValue)
                 }
 
                 ComboBox {
                     id: hDivCombo
                     textRole: "text"
-                    //valueRole: "value"
+                    valueRole: "value"
                     Layout.fillWidth: true
                     model: ListModel {
                         id: hDivList
@@ -95,7 +94,7 @@ Item {
                         ListElement { text: "100μs/d"; value: 100 }
                     }
                     currentIndex: 2
-                    onCurrentTextChanged: oscilloscope.setHDiv(hDivList.get(currentIndex).value)
+                    onCurrentValueChanged: oscilloscope.setHDiv(currentValue)
                 }
             }
             GridLayout {
@@ -134,7 +133,5 @@ Item {
             elide: Text.ElideRight
             property string textPermanent: "Disconnected"
             text: "Disconnected" }
-
     }
-
 }
