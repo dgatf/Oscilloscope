@@ -158,7 +158,7 @@ ApplicationWindow {
                 icon.width: 32
                 icon.source: "qrc:res/menu.png"
                 onClicked: {
-                    menu.open()
+                    menu.popup()
                 }
 
                 Menu {
