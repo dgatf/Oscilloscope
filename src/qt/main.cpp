@@ -13,14 +13,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mainwindow.h"
-
 #include <QApplication>
+#include <QQmlApplicationEngine>
+#include <QQuickView>
+#include <QQmlContext>
+#include <QQuickStyle>
+
+#include "oscilloscope.h"
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
-    MainWindow w;
-    w.show();
-    return a.exec();
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif
+    QApplication app(argc, argv);
+    QQmlApplicationEngine engine;
+    Oscilloscope *oscilloscope = new Oscilloscope(app.devicePixelRatio());
+#ifdef Q_OS_ANDROID
+    const QUrl url(QStringLiteral("qrc:/mainwindow_device.qml"));
+    QQuickStyle::setStyle("Material");
+#else
+    const QUrl url(QStringLiteral("qrc:/mainwindow.qml"));
+    QQuickStyle::setStyle("Fusion");
+#endif
+    QObject::connect(&engine, &QQmlApplicationEngine::quit, &app, &QCoreApplication::quit);
+    app.setWindowIcon(QIcon(":res/oscilloscope.png"));
+    app.setOrganizationName("DanielGeA");
+    app.setOrganizationDomain("DanielGeA");
+    engine.rootContext()->setContextProperty("oscilloscope", oscilloscope);
+    engine.addImageProvider(QLatin1String("imgProvider"), oscilloscope);
+    engine.load(url);
+    return app.exec();
 }

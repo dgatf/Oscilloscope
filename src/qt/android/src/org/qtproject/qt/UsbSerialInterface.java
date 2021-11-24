@@ -22,7 +22,7 @@ public class UsbSerialInterface implements SerialInputOutputManager.Listener
     private static native void sendBuffer(byte[] buffer);
     private static native void sendStatus(int status, String msg);
 
-    enum Status { CONNECTED, DISCONNECTED, PERMISSION_NOT_GRANTED, ERROR_CONNECTING, ERROR_OPENING, CONNECTION_LOST };
+    enum Status { CONNECTED, DISCONNECTED, PERMISSION_NOT_GRANTED, ERROR_CONNECTING, ERROR_OPENING, CONNECTION_LOST, DRIVER_NOT_FOUND, PERMISSION_REQUESTED };
 
     UsbManager manager;
     UsbSerialDriver driver;
@@ -34,17 +34,11 @@ public class UsbSerialInterface implements SerialInputOutputManager.Listener
     int databits;
     int stopbits;
     int parity;
-    Context appContext;
     private static final String ACTION_USB_PERMISSION = "com.example.usbserial.USB_PERMISSION";
 
     public void sendStatus(int status)
     {
         sendStatus(status, "");
-    }
-
-    public void setContext(Context context)
-    {
-        appContext = context;
     }
 
     public void closeConnection()
@@ -59,7 +53,7 @@ public class UsbSerialInterface implements SerialInputOutputManager.Listener
         return availableDrivers;
     }
 
-    public String openConnection(Context context, String name, int baudrate, int databits, int stopbits, int parity)
+    public void openConnection(Context context, String name, int baudrate, int databits, int stopbits, int parity)
     {
         this.baudrate = baudrate;
         this.databits = databits;
@@ -70,12 +64,14 @@ public class UsbSerialInterface implements SerialInputOutputManager.Listener
             if (availableDrivers.get(i).toString().contains(name))
                 driver = availableDrivers.get(i);
         }
-        if (driver == null)
-            return "Driver not found";
+        if (driver == null) {
+            sendStatus(Status.DRIVER_NOT_FOUND.ordinal());
+            return;
+        }
         PendingIntent pi = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
         context.registerReceiver(receiver, new IntentFilter(ACTION_USB_PERMISSION));
         manager.requestPermission(driver.getDevice(), pi);
-        return "Permission requested";
+        sendStatus(Status.PERMISSION_REQUESTED.ordinal());
     }
 
     public void configConnection()
@@ -114,7 +110,6 @@ public class UsbSerialInterface implements SerialInputOutputManager.Listener
         sendStatus(Status.CONNECTION_LOST.ordinal());
     }
 
-    // Receive request Usb permission
     public final BroadcastReceiver receiver = new BroadcastReceiver()
     {
         public void onReceive(Context context, Intent intent) {
