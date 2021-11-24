@@ -1,11 +1,34 @@
 <RCC>
     <qresource prefix="/">
-        <file>oscilloscope.bmp</file>
-        <file>connect.png</file>
-        <file>disconnect.png</file>
-        <file>save.png</file>
-        <file>settings.png</file>
-        <file>info.png</file>
-        <file>application-exit.png</file>
+        <file>res/application-exit.png</file>
+        <file>res/connect.png</file>
+        <file>res/disconnect.png</file>
+        <file>res/info.png</file>
+        <file>res/oscilloscope.bmp</file>
+        <file>res/oscilloscope.ico</file>
+        <file>res/save.png</file>
+        <file>res/settings.png</file>
+        <file>res/oscilloscope_120x64.bmp</file>
+        <file>android/res/connect.png</file>
+        <file>android/res/disconnect.png</file>
+        <file>android/res/info.png</file>
+        <file>android/res/oscilloscope.bmp</file>
+        <file>android/res/save.png</file>
+        <file>res/play.png</file>
+        <file>res/export.png</file>
+        <file>res/capture.png</file>
+        <file>res/pause.png</file>
+        <file>android/res/play.png</file>
+        <file>android/res/export.png</file>
+        <file>android/res/capture.png</file>
+        <file>android/res/pause.png</file>
+        <file>AboutItem.qml</file>
+        <file>MainItem.qml</file>
+        <file>mainwindow.qml</file>
+        <file>mainwindow_device.qml</file>
+        <file>SettingsItem.qml</file>
+        <file>res/oscilloscope.png</file>
+        <file>res/menu.png</file>
+        <file>android/res/menu.png</file>
     </qresource>
 </RCC>
