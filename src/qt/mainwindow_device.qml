@@ -1,9 +1,9 @@
 import QtQuick 2.9
 import QtQuick.Window 2.2
+import Qt.labs.platform 1.1
 import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.15
 import Qt.labs.settings 1.0
-import Qt.labs.platform 1.1
 
 ApplicationWindow {
     id: window
@@ -26,7 +26,7 @@ ApplicationWindow {
 
     FileDialog {
         id: fileDialogCapture
-        fileMode: Platform.FileDialog.SaveFile
+        fileMode: FileDialog.SaveFile
         nameFilters: ["Bitmap image (*.bmp)","All Files (*)"]
         onAccepted: oscilloscope.exportImage(fileDialogCapture.currentFile)
     }
@@ -46,12 +46,12 @@ ApplicationWindow {
     Connections {
         target: oscilloscope
 
-        onSendPixmap: {
+        function onSendPixmap() {
             mainItem.imageSource =  ""
             mainItem.imageSource =  "image://imgProvider"
         }
 
-        onSendMessage: {
+        function onSendMessage(message, duration) {
             if (duration === 0)
                 mainItem.statusTextPermanent = message
             else {
@@ -61,7 +61,7 @@ ApplicationWindow {
             mainItem.statusText =  message
         }
 
-        onSendStatusConn: {
+        function onSendStatusConn(status) {
             if (status === 0) { // connected
                 connectButton.status = "connected"
                 connectMenu.status = "connected"
@@ -80,7 +80,7 @@ ApplicationWindow {
             }
         }
 
-        onIsPausedChanged: {
+        function onIsPausedChanged(isPaused) {
             if (isPaused) {
                 pauseButton.isPaused = true
                 pauseMenu.isPaused = true
@@ -89,7 +89,6 @@ ApplicationWindow {
                 pauseButton.isPaused = false
                 pauseMenu.isPaused = false
             }
-
         }
     }
 
@@ -146,6 +145,7 @@ ApplicationWindow {
                 onClicked: fileDialogExport.open()
             }
             Label {
+                id: toolBarLabel
                 Layout.fillWidth: true
                 rightPadding: 52
                 horizontalAlignment: Qt.AlignHCenter
@@ -232,7 +232,6 @@ ApplicationWindow {
             anchors.fill: parent
             MainItem {
                 id: mainItem
-                anchors.fill: parent
             }
         }
         Page {
@@ -251,6 +250,5 @@ ApplicationWindow {
             }
         }
     }
-
 }
 
