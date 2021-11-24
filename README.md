@@ -43,7 +43,7 @@ Supported OS:
 
 ## Change log:
 
-v0.2
+[v0.2](https://github.com/dgatf/Oscilloscope/releases/tag/v0.2)
 - Upgrade to qml gui
 - Add csv export
 - Improve android support 
