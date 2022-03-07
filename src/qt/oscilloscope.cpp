@@ -24,7 +24,9 @@ Oscilloscope::Oscilloscope(qreal pixelRatio)
     , pixmap(new QPixmap(pmWidth, pmHeight))
     , paint(new QPainter(pixmap))
     , serial(new QSerialPort())
+    , timer(new QTimer())
 {
+    connect(timer, &QTimer::timeout, this, &Oscilloscope::timeOut);
 }
 #else
 Oscilloscope::Oscilloscope(qreal pixelRatio)
@@ -39,7 +41,8 @@ Oscilloscope::Oscilloscope(qreal pixelRatio)
     jclass classId = env->FindClass("org/qtproject/qt/UsbSerialInterface");
     usbSerial = QAndroidJniObject(classId);
     JNINativeMethod methods[] { {"sendBuffer", "([B)V", reinterpret_cast<void *>(sendBuffer)}
-                              , {"sendStatus", "(ILjava/lang/String;)V", reinterpret_cast<void *>(sendStatus)} };
+        , {"sendStatus", "(ILjava/lang/String;)V", reinterpret_cast<void *>(sendStatus)}
+    };
     env->RegisterNatives(classId, methods, 2);
 }
 #endif
@@ -65,7 +68,7 @@ QPixmap Oscilloscope::requestPixmap(const QString &id, QSize *size, const QSize 
 }
 
 #ifndef Q_OS_ANDROID
-void Oscilloscope::openSerialPort(QString portName, QString baudrate, QString dataBits, QString parity, QString interval)
+void Oscilloscope::openSerialPort(QString portName, QString baudrate, QString dataBits, QString parity, QString intervalStr)
 {
     connect(serial, &QSerialPort::readyRead, this, &Oscilloscope::readData);
     serial->setPortName(portName);
@@ -74,11 +77,11 @@ void Oscilloscope::openSerialPort(QString portName, QString baudrate, QString da
     serial->setParity((QSerialPort::Parity)parity.toUInt());
     serial->setStopBits(QSerialPort::StopBits::OneStop);
     serial->setFlowControl(QSerialPort::FlowControl::NoFlowControl);
-    this->interval = interval.toUInt();
+    interval = intervalStr.toUInt() / 100.0;
     if (serial->open(QIODevice::ReadOnly)) {
         status = connected;
         emit sendStatusConn(status);
-        QString message("Connected   (" + portName + "   " + baudrate + "bps   " + interval + "μs)");
+        QString message("Connected   (" + portName + "   " + baudrate + "bps   " + QString::number(interval) + "μs)");
         emit sendMessage(message);
     } else {
         status = disconnected;
@@ -96,9 +99,9 @@ void Oscilloscope::openSerialPort(QString portName, QString baudrate, QString da
         parity_android = parity.toUInt();
     jstring name = env->NewStringUTF(portName.toStdString().c_str());
     usbSerial.callMethod<void>
-                        ("openConnection"
-                       , "(Landroid/content/Context;Ljava/lang/String;IIII)V"
-                       , QtAndroid::androidContext().object(), name, baudrate.toUInt(), dataBits.toUInt(), 1, parity_android);
+    ("openConnection"
+     , "(Landroid/content/Context;Ljava/lang/String;IIII)V"
+     , QtAndroid::androidContext().object(), name, baudrate.toUInt(), dataBits.toUInt(), 1, parity_android);
 }
 #endif
 
@@ -119,12 +122,34 @@ void Oscilloscope::closeSerialPort()
     emit isPausedChanged(false);
 }
 
+void Oscilloscope::timeOut()
+{
+    timedOut = true;
+    isPixmapSent = false;
+    isDataStart = true;
+    processData(data);
+}
+
 #ifndef Q_OS_ANDROID
 void Oscilloscope::readData()
 {
-    QByteArray data = serial->readAll();
-    if (!isPaused)
-        processData(data);
+    if (isRealTime) {
+        data = serial->readAll();
+        if (!isPaused) {
+            processData(data);
+        }
+    } else {
+        if (!isPaused) {
+            timer->setSingleShot(true);
+            timer->start(500);
+            if (timedOut) {
+                data.clear();
+                timedOut = false;
+            }
+            data.append(serial->readAll());
+            timedOut = false;
+        }
+    }
 }
 #else
 void Oscilloscope::readData(const QByteArray &data)
@@ -173,6 +198,10 @@ QStringList Oscilloscope::fillPortsInfo()
     QStringList list;
     for (const QSerialPortInfo& info : infos) {
         list.append(info.portName());
+        qDebug() << info.description();
+        qDebug() << info.manufacturer();
+        qDebug() << info.serialNumber();
+
     }
     return list;
 }
@@ -180,9 +209,9 @@ QStringList Oscilloscope::fillPortsInfo()
 QStringList Oscilloscope::fillPortsInfo()
 {
     QAndroidJniObject drivers = usbSerial.callObjectMethod
-                         ("drivers"
-                          , "(Landroid/content/Context;)Ljava/util/List;"
-                          , QtAndroid::androidContext().object());
+                                ("drivers"
+                                 , "(Landroid/content/Context;)Ljava/util/List;"
+                                 , QtAndroid::androidContext().object());
     QStringList list;
     int size = drivers.callMethod<jint>("size");
     for (int i = 0; i < size; i++) {
@@ -211,101 +240,129 @@ void Oscilloscope::processData(const QByteArray &data)
     quint16 width = pmWidth;
     paint->setPen(QPen(QColor(signalColor), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     float xDelta = width * interval / 1000.0 / timeRange;
-    for (quint16 i = 0; i < data.size(); i++) {
-        // Find V limits
-        if ((quint8)data[i] > maxValue) {
-            maxValue = data[i];
-        }
-        if ((quint8)data[i] < minValue) {
-            minValue = data[i];
-        }
-        // Find triggers and signal properties
-        if ((quint8)data[i] - prevValue > 0) { // rising
-            deltaRising += (quint8)data[i] - prevValue;
-            deltaFalling = 0;
-        }
-        if ((quint8)data[i] - prevValue < 0) { // falling
-            deltaFalling += prevValue - (quint8)data[i];
-            deltaRising = 0;
-        }
-        prevValue = data[i];
-        if (((float)deltaRising) / 0xFF * 5 > triggerValue / 1000.0) {
-            if ((triggerType == rising || triggerType == none) && triggerCont - tsRising > 2) {
-                isTriggered = true;
-                rawFreq = triggerCont - tsRising;
-                rawDuty = triggerCont - tsFalling;
-                rawFreqAvg = 0.1 * rawFreq + 0.9 * rawFreqAvg;
-                rawDutyAvg = 0.1 * rawDuty + 0.9 * rawDutyAvg;
-            }
-            deltaRising = 0;
-            deltaFalling = 0;
-            tsRising = triggerCont;
-        }
-        if (((float)deltaFalling) / 0xFF * 5 > triggerValue / 1000.0) {
-            if (triggerType == falling  && triggerCont - tsFalling > 2) {
-                isTriggered = true;
-                rawFreq = triggerCont - tsFalling;
-                rawDuty = triggerCont - tsRising;
-                rawFreqAvg = 0.1 * rawFreq + 0.9 * rawFreqAvg;
-                rawDutyAvg = 0.1 * rawDuty + 0.9 * rawDutyAvg;
-            }
-            deltaRising = 0;
-            deltaFalling = 0;
-            tsFalling = triggerCont;
-        }
-        triggerCont++;
-        // Capture
-        if (isCapturing) {
-            captureBuffer->append(data[i]);
-        }
-        // Draw new value
-        if (isTriggered == true || triggerType == none) {
-            float newxPos = oldxPos + xDelta;
-            qint16 newyPos = height + yZeroV - getYVal(data[i]);
-            // End of pixmap
-            if (newxPos > width) {
-                if (triggerType != none) {
-                    isTriggered = false;
-                    deltaRising = 0;
-                    deltaFalling = 0;
-                }
-                emit sendPixmap();
+    static quint16 contX = 0;
 
-                if (pendingExport) {
-                    savePixmap(filename);
-                    pendingExport = false;
+    if (isDataStart) {
+        oldxPos = 0;
+        maxValue = 0;
+        minValue = 0;
+        drawBackground();
+        paint->setPen(QPen(QColor(signalColor), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        isDataStart =false;
+        isTriggered = false;
+    }
+    for (quint16 contByte = 0; contByte < data.size(); contByte++) {
+        for (quint16 contSubByte = 8 / dataBits; contSubByte > 0; contSubByte--) {
+            quint8  value = (data[contByte] << (contSubByte - 1) * dataBits) & ~(0xFF >> dataBits);
+            //quint8 value = data[contByte];
+            // Find V limits
+            if (value > maxValue) {
+                maxValue = value;
+            }
+            if (value < minValue) {
+                minValue = value;
+            }
+            // Find triggers and signal properties
+            if (value - prevValue > 0) { // rising
+                deltaRising += value - prevValue;
+                deltaFalling = 0;
+            }
+            if (value - prevValue < 0) { // falling
+                deltaFalling += prevValue - value;
+                deltaRising = 0;
+            }
+            prevValue = value;
+            if (((float)deltaRising) / 0xFF * 5 > triggerValue / 1000.0) {
+                if ((triggerType == rising || triggerType == none) && triggerCont - tsRising > 2) {
+                    isTriggered = true;
+                    rawFreq = triggerCont - tsRising;
+                    rawDuty = triggerCont - tsFalling;
+                    rawFreqAvg = 0.1 * rawFreq + 0.9 * rawFreqAvg;
+                    rawDutyAvg = 0.1 * rawDuty + 0.9 * rawDutyAvg;
                 }
-                if (isCapturing) {
-                    isCapturing = false;
-                    saveCsv(filename);
-                    delete captureBuffer;
+                deltaRising = 0;
+                deltaFalling = 0;
+                tsRising = triggerCont;
+            }
+            if (((float)deltaFalling) / 0xFF * 5 > triggerValue / 1000.0) {
+                if (triggerType == falling  && triggerCont - tsFalling > 2) {
+                    isTriggered = true;
+                    rawFreq = triggerCont - tsFalling;
+                    rawDuty = triggerCont - tsRising;
+                    rawFreqAvg = 0.1 * rawFreq + 0.9 * rawFreqAvg;
+                    rawDutyAvg = 0.1 * rawDuty + 0.9 * rawDutyAvg;
                 }
-                if (pendingCsv) {
-                    isCapturing = true;
-                    pendingCsv = false;
-                    captureBuffer = new QByteArray(timeRange/interval+1, 0);
-                }
-
-                if (pendingPause) {
-                    pendingPause = false;
-                    isPaused = true;
-                    emit isPausedChanged(true);
-                    return;
-                }
-                drawBackground();
-                paint->setPen(QPen(QColor(signalColor), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-                newxPos = 0;
-                maxValue = 0;
-                minValue = 0;
+                deltaRising = 0;
+                deltaFalling = 0;
+                tsFalling = triggerCont;
+            }
+            triggerCont++;
+            // Capture
+            if (isCapturing) {
+                captureBuffer->append(value);
             }
             // Draw new value
-            else {
-                paint->drawLine(newxPos + width * hAdjust, newyPos + height * vAdjust, oldxPos + width * hAdjust, oldyPos + height * vAdjust);
+            if (isTriggered == true || triggerType == none) {
+                float newxPos = contX * xDelta;
+                contX++;
+                qint16 newyPos = height + yZeroV - getYVal(value);
+                // End of pixmap
+                if (newxPos > width) {
+                    if (triggerType != none) {
+                        isTriggered = false;
+                        deltaRising = 0;
+                        deltaFalling = 0;
+                    }
+                    emit sendPixmap();
+                    if (pendingExport) {
+                        savePixmap(filename);
+                        pendingExport = false;
+                    }
+                    if (isCapturing) {
+                        isCapturing = false;
+                        saveCsv(filename);
+                        delete captureBuffer;
+                    }
+                    if (pendingCsv) {
+                        isCapturing = true;
+                        pendingCsv = false;
+                        captureBuffer = new QByteArray(timeRange/interval+1, 0);
+                    }
+
+                    if (pendingPause) {
+                        pendingPause = false;
+                        isPaused = true;
+                        emit isPausedChanged(true);
+                        return;
+                    }
+
+                    if (!isRealTime) {
+                        isPixmapSent = true;
+                        newxPos = 0;
+                        maxValue = 0;
+                        minValue = 0;
+                        contX = 0;
+                        return;
+                    }
+
+                    drawBackground();
+                    paint->setPen(QPen(QColor(signalColor), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+                    newxPos = 0;
+                    maxValue = 0;
+                    minValue = 0;
+                    contX = 0;
+                }
+                // Draw new value
+                else {
+                    paint->drawLine(newxPos + width * hAdjust, newyPos + height * vAdjust, oldxPos + width * hAdjust, oldyPos + height * vAdjust);
+                }
+                oldxPos = newxPos;
+                oldyPos = newyPos;
             }
-            oldxPos = newxPos;
-            oldyPos = newyPos;
         }
     }
+    if (!isRealTime && !isPixmapSent)
+        emit sendPixmap();
 }
 
 qint16 Oscilloscope::getYZeroV()
@@ -331,8 +388,8 @@ void Oscilloscope::drawBackground()
     for (quint8 i = 0; i < 6; i++) {   // horizontal lines
         paint->drawLine(0, height * i / 6, width, height * i / 6);
     }
-    for (quint8 i = 0; i < 10; i++) {   // vertical lines
-        paint->drawLine(width * i / 10, 0, width * i / 10, height);
+    for (quint8 i = 0; i < 11; i++) {   // vertical lines
+        paint->drawLine(width * i / 11, 0, width * i / 11, height);
     }
     QFont font = paint->font();
     font.setPixelSize(14 * pixelRatio);
@@ -404,8 +461,7 @@ void Oscilloscope::exportCsv(QUrl url)
 void Oscilloscope::saveCsv(QString filename)
 {
     QFile data(filename);
-    if(data.open(QFile::WriteOnly | QFile::Truncate))
-    {
+    if(data.open(QFile::WriteOnly | QFile::Truncate)) {
         QTextStream output(&data);
         output << "Interval\t" + QString::number(interval) + "\n";
         for (quint16 i=0; i < captureBuffer->size(); i++) {
@@ -416,11 +472,11 @@ void Oscilloscope::saveCsv(QString filename)
     data.close();
 }
 
-void Oscilloscope::setIsPaused(const bool value) {
+void Oscilloscope::setIsPaused(const bool value)
+{
     if (value == true)
         pendingPause = true;
-    else
-    {
+    else {
         isPaused = false;
         pendingPause = false;
         emit isPausedChanged(false);
