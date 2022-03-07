@@ -91,7 +91,11 @@ Item {
                         ListElement { text: "5ms/d"; value: 5000 }
                         ListElement { text: "1ms/d"; value: 1000 }
                         ListElement { text: "500μs/d"; value: 500 }
+                        ListElement { text: "400μs/d"; value: 400 }
+                        ListElement { text: "300μs/d"; value: 300 }
+                        ListElement { text: "200μs/d"; value: 200 }
                         ListElement { text: "100μs/d"; value: 100 }
+                        ListElement { text: "50μs/d"; value: 50 }
                     }
                     currentIndex: 2
                     onCurrentValueChanged: oscilloscope.setHDiv(currentValue)

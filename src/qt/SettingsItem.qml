@@ -110,7 +110,7 @@ Item {
                         ListElement { text: "500000" }
                         ListElement { text: "1000000" }
                     }
-                    currentIndex: 7
+                    currentIndex: 8
                 }
                 Label { text: "Data bits" }
                 ComboBox {
@@ -139,7 +139,26 @@ Item {
                 SpinBox {
                     id: interval
                     Layout.fillWidth: true
-                    value: 26
+                    value: 2600
+                    from: 0
+                    to: 100 * 100
+                    editable: true
+
+                    property int decimals: 2
+                        property real realValue: value / 100
+
+                        validator: DoubleValidator {
+                            bottom: Math.min(interval.from, interval.to)
+                            top:  Math.max(interval.from, interval.to)
+                        }
+
+                        textFromValue: function(value, locale) {
+                            return Number(value / 100).toLocaleString(locale, 'f', interval.decimals)
+                        }
+
+                        valueFromText: function(text, locale) {
+                            return Number.fromLocaleString(locale, text) * 100
+                        }
                 }
             }
         }
